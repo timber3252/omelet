@@ -10,11 +10,12 @@
 class Router {
 public:
   struct RouterNode {
-    RouterNode() : ip(0), port(0) { ch[0] = ch[1] = 0; }
+    RouterNode() : ip(0), port(0), sockfd(0) { ch[0] = ch[1] = 0; }
 
     RouterNode *ch[2];
     uint32_t ip;
     uint16_t port;
+    uint32_t sockfd;
   };
 
   Router() {
@@ -43,6 +44,19 @@ public:
       now = now->ch[nxt];
     }
     return now;
+  }
+
+  void modify(uint32_t key, uint32_t sock) {
+    mtx.lock();
+    RouterNode *now = rt;
+    for (int i = 0; i < 32; ++i, key >>= 1) {
+      int nxt = key & 1;
+      if (now->ch[nxt] == nullptr)
+        return;
+      now = now->ch[nxt];
+    }
+    now->sockfd = sock;
+    mtx.unlock();
   }
 
 private:

@@ -132,7 +132,12 @@ void init() {
   tmpbuf[0] = PACKET_REG;
   tmpbuf[1] = client_listen_port & 0x00ff;
   tmpbuf[2] = (client_listen_port & 0xff00) >> 8;
-  aes_encrypt(tmpbuf, 3, aes_key, tmppacket);
+  int ipi = inet_addr(client_listen_ip);
+  tmpbuf[3] = (ipi & 0x000000ff);
+  tmpbuf[4] = (ipi & 0x0000ff00) >> 8;
+  tmpbuf[5] = (ipi & 0x00ff0000) >> 16;
+  tmpbuf[6] = (ipi & 0xff000000) >> 24;
+  aes_encrypt(tmpbuf, 7, aes_key, tmppacket);
   send(client_sock, tmppacket, AES_BLOCK_SIZE, 0);
 }
 
@@ -338,21 +343,24 @@ void* async_wait_and_forward(void *p) {
     if (res == nullptr) {
       sleep(1);
     } else {
-      logc(LogLevel::Debug) << data->dest_ip.ipv4_address_i;
-      int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-      sockaddr_in addr;
-      addr.sin_family = PF_INET;
-      addr.sin_port = htons(res->port);
-      addr.sin_addr.s_addr = htonl(res->ip);
-
-      if (connect(sockfd, (sockaddr *)&addr, sizeof(addr)) == -1){
-        logc(LogLevel::Error) << "Failed to forward message to the peer (" << res->ip
-                              << ':' << res->port << ").";
-        pthread_exit(nullptr);
+      if (res->sockfd == 0 || send(res->sockfd, data->encrypted_data, data->length, 0) < 0) {
+        int sockfd = socket(PF_INET, SOCK_STREAM, 0);
+        if (sockfd < 0) {
+          // TODO
+          continue;
+        }
+        sockaddr_in addr;
+        addr.sin_family = PF_INET;
+        addr.sin_port = htons(res->port);
+        addr.sin_addr.s_addr = htonl(res->ip);
+        if (connect(sockfd, (sockaddr *)&addr, sizeof(addr)) == -1){
+          logc(LogLevel::Error) << "Failed to forward message to the peer (" << res->ip
+                                << ':' << res->port << ").";
+          continue;
+        }
+        router.modify(data->dest_ip.ipv4_address_i, sockfd);
+        send(sockfd, data->encrypted_data, data->length, 0);
       }
-
-      send(sockfd, data->encrypted_data, data->length, 0);
-      close(sockfd);
       pthread_exit(nullptr);
     }
   }
@@ -470,28 +478,27 @@ int main(int argc, char *argv[]) {
       pthread_create(&wait_tid, nullptr, async_wait_and_forward, data);
       continue;
     } else {
-      int sockfd = socket(PF_INET, SOCK_STREAM, 0);
-
-      if (sockfd < 0) {
-        // TODO
-        continue;
-      }
-
-      sockaddr_in addr;
-      addr.sin_family = PF_INET;
-      addr.sin_port = htons(res->port);
-      addr.sin_addr.s_addr = htonl(res->ip);
-
-      if (connect(sockfd, (sockaddr *)&addr, sizeof(addr)) == -1){
-        logc(LogLevel::Error) << "Failed to forward message to the peer (" << res->ip
-                              << ':' << res->port << ").";
-      }
-
       uint8_t encrypted_data[kProtocolMaxSize];
       aes_encrypt(buffer, nread + 2, aes_key, encrypted_data);
 
-      send(sockfd, encrypted_data, (size_t)ceil((nread + 2) / (double)AES_BLOCK_SIZE) * AES_BLOCK_SIZE, 0);
-      close(sockfd);
+      if (res->sockfd == 0 || send(res->sockfd, encrypted_data, (size_t)ceil((nread + 2) / (double)AES_BLOCK_SIZE) * AES_BLOCK_SIZE, 0) < 0) {
+        int sockfd = socket(PF_INET, SOCK_STREAM, 0);
+        if (sockfd < 0) {
+          // TODO
+          continue;
+        }
+        sockaddr_in addr;
+        addr.sin_family = PF_INET;
+        addr.sin_port = htons(res->port);
+        addr.sin_addr.s_addr = htonl(res->ip);
+        if (connect(sockfd, (sockaddr *)&addr, sizeof(addr)) == -1){
+          logc(LogLevel::Error) << "Failed to forward message to the peer (" << res->ip
+                                << ':' << res->port << ").";
+          continue;
+        }
+        router.modify(dest_ip.ipv4_address_i, sockfd);
+        send(sockfd, encrypted_data, (size_t)ceil((nread + 2) / (double)AES_BLOCK_SIZE) * AES_BLOCK_SIZE, 0);
+      }
     }
   }
   return 0;
