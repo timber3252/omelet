@@ -193,6 +193,7 @@ void* serve_thread(void *p) {
                            << inet_ntoa(peer_sa.sin_addr) << ':'
                            << ntohs(peer_sa.sin_port)
                            << ") could not be decrypted.";
+      close(fd);
       continue;
     }
 
@@ -338,10 +339,16 @@ void* wait_thread(void *) {
 
 void* async_wait_and_forward(void *p) {
   auto *data = (Packet*)p;
-  for (int i = 0; i < 20; ++i) {
+  int time_usec = 0;
+  for (int i = 0; i < 22; ++i) {
     Router::RouterNode *res = router.query(data->dest_ip.ipv4_address_i);
     if (res == nullptr) {
-      sleep(1);
+      usleep(time_usec);
+      if (time_usec == 0) {
+        time_usec = 1;
+      } else {
+        time_usec = time_usec * 2;
+      }
     } else {
       if (res->sockfd == 0 || send(res->sockfd, data->encrypted_data, data->length, 0) < 0) {
         int sockfd = socket(PF_INET, SOCK_STREAM, 0);
@@ -358,6 +365,8 @@ void* async_wait_and_forward(void *p) {
                                 << ':' << res->port << ").";
           continue;
         }
+        if (res->sockfd)
+          close(res->sockfd);
         router.modify(data->dest_ip.ipv4_address_i, sockfd);
         send(sockfd, data->encrypted_data, data->length, 0);
       }
@@ -496,6 +505,8 @@ int main(int argc, char *argv[]) {
                                 << ':' << res->port << ").";
           continue;
         }
+        if (res->sockfd)
+          close(res->sockfd);
         router.modify(dest_ip.ipv4_address_i, sockfd);
         send(sockfd, encrypted_data, (size_t)ceil((nread + 2) / (double)AES_BLOCK_SIZE) * AES_BLOCK_SIZE, 0);
       }

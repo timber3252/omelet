@@ -136,7 +136,7 @@ void *serve_thread(void *p) {
         }
         case PACKET_REG: {
           client_listen_port[self] = (output[1] | (output[2] << 8));
-          if (client_nat_ip[self] == 0x100007f) { // 127.0.0.1 TODO
+          if (client_nat_ip[self] == 0x0100007f) { // 127.0.0.1 TODO
             client_nat_ip[self] = (output[3] | (output[4] << 8) | (output[5] << 16) | (output[6] << 24));
           }
           logc(LogLevel::Debug) << "Packet decrypted: reg " << client_listen_port[self] << ' ' << client_nat_ip[self];
