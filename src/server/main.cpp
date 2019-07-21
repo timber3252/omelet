@@ -7,7 +7,8 @@
 #include "../base/linux/log.h"
 
 uint16_t server_port = 21121, client_listen_port[kMaxConnections];
-uint32_t server_sock, client_socks[kMaxConnections], client_ip[kMaxConnections], client_nat_ip[kMaxConnections];
+uint32_t server_sock, client_socks[kMaxConnections], client_ip[kMaxConnections],
+    client_nat_ip[kMaxConnections];
 ConsoleLog logc;
 char server_ip[kMinBufSize] = "0.0.0.0";
 
@@ -47,7 +48,7 @@ void *serve_thread(void *p) {
   while (true) {
     uint8_t output[kBufSize] = {0}, buf[kBufSize] = {0};
     int len = recv(fd, buf, sizeof buf, 0);
-//    logc(LogLevel::Debug) << "recv len: " << len;
+    //    logc(LogLevel::Debug) << "recv len: " << len;
     if (len <= 0) {
       int i = 0;
       for (i = 0; i < kMaxConnections; ++i) {
@@ -73,7 +74,7 @@ void *serve_thread(void *p) {
     } else {
       switch (output[0]) {
         case PACKET_HEARTBEAT: {
-//          logc(LogLevel::Debug) << "Packet decrypted: heartbeat";
+          //          logc(LogLevel::Debug) << "Packet decrypted: heartbeat";
           send(fd, buf, len, 0);
           continue;
         }
@@ -81,12 +82,15 @@ void *serve_thread(void *p) {
           logc(LogLevel::Debug) << "Packet decrypted: query nat self";
           uint8_t reply[kMinBufSize] = {0x00};
           reply[0] = PACKET_QUERY_NAT_SELF;
-          reply[1] =
-              (*reinterpret_cast<const int *>(&client_sa.sin_addr) & 0xff000000) >> 24;
-          reply[2] =
-              (*reinterpret_cast<const int *>(&client_sa.sin_addr) & 0x00ff0000) >> 16;
-          reply[3] =
-              (*reinterpret_cast<const int *>(&client_sa.sin_addr) & 0x0000ff00) >> 8;
+          reply[1] = (*reinterpret_cast<const int *>(&client_sa.sin_addr) &
+                      0xff000000) >>
+                     24;
+          reply[2] = (*reinterpret_cast<const int *>(&client_sa.sin_addr) &
+                      0x00ff0000) >>
+                     16;
+          reply[3] = (*reinterpret_cast<const int *>(&client_sa.sin_addr) &
+                      0x0000ff00) >>
+                     8;
           reply[4] =
               *reinterpret_cast<const int *>(&client_sa.sin_addr) & 0x000000ff;
           reply[5] = client_listen_port[self] & 0x00ff;
@@ -122,24 +126,28 @@ void *serve_thread(void *p) {
           }
           reply[0] = PACKET_QUERY_CLIENT_LIST;
           memset(buf, 0x00, sizeof buf);
-//          for (int i = 0; i < cnt; ++i) {
-//            logc(LogLevel::Debug) << int(reply[i]);
-//          }
-          if (aes_encrypt(reinterpret_cast<const uint8_t *>(reply), cnt, aes_key, buf) == 0) {
+          //          for (int i = 0; i < cnt; ++i) {
+          //            logc(LogLevel::Debug) << int(reply[i]);
+          //          }
+          if (aes_encrypt(reinterpret_cast<const uint8_t *>(reply), cnt,
+                          aes_key, buf) == 0) {
             send(fd, buf,
                  static_cast<size_t>(
                      ceil(cnt / static_cast<double>(AES_BLOCK_SIZE))) *
-                 AES_BLOCK_SIZE,
+                     AES_BLOCK_SIZE,
                  0);
           }
           continue;
         }
         case PACKET_REG: {
           client_listen_port[self] = (output[1] | (output[2] << 8));
-          if (client_nat_ip[self] == 0x0100007f) { // 127.0.0.1 TODO
-            client_nat_ip[self] = (output[3] | (output[4] << 8) | (output[5] << 16) | (output[6] << 24));
+          if (client_nat_ip[self] == 0x0100007f) {  // 127.0.0.1 TODO
+            client_nat_ip[self] = (output[3] | (output[4] << 8) |
+                                   (output[5] << 16) | (output[6] << 24));
           }
-          logc(LogLevel::Debug) << "Packet decrypted: reg " << client_listen_port[self] << ' ' << client_nat_ip[self];
+          logc(LogLevel::Debug)
+              << "Packet decrypted: reg " << client_listen_port[self] << ' '
+              << client_nat_ip[self];
           continue;
         }
       }
@@ -178,7 +186,8 @@ void serve() {
         in[2] = cnt.ip_address_v4_s[1];
         in[3] = cnt.ip_address_v4_s[2];
         in[4] = cnt.ip_address_v4_s[3];
-        logc(LogLevel::Debug) << int(in[4]) << '.' << int(in[3]) << '.' << int(in[2]) << '.' << int(in[1]);
+        logc(LogLevel::Debug) << int(in[4]) << '.' << int(in[3]) << '.'
+                              << int(in[2]) << '.' << int(in[1]);
         aes_encrypt(in, 5, aes_key, buf);
         send(fd, buf, AES_BLOCK_SIZE, 0);
         pthread_t tid;

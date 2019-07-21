@@ -5,8 +5,8 @@
 #ifndef OMELET_AES_H
 #define OMELET_AES_H
 
-#include "global.h"
 #include <openssl/aes.h>
+#include "global.h"
 
 // TODO: 调试用密钥，后续处理
 const uint8_t aes_key[128] = {
@@ -48,4 +48,4 @@ int aes_decrypt(const unsigned char *encrypt_data, const size_t len,
   return 0;
 }
 
-#endif // OMELET_AES_H
+#endif  // OMELET_AES_H

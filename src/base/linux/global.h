@@ -47,4 +47,4 @@ const size_t kProtocolMaxSize = 72000;
 #define PACKET_REG 0x04
 #define PACKET_FIRST_CONFIRM 0x05
 
-#endif // PROLINE_BACKEND_GLOBAL_H
+#endif  // PROLINE_BACKEND_GLOBAL_H

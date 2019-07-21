@@ -46,5 +46,4 @@ class ConsoleLog::LogStream : public std::ostringstream {
 
 std::ostream &operator<<(std::ostream &stream, const tm *tm);
 
-
 #endif  // PROLINE_BACKEND_LOG_H

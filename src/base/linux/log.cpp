@@ -25,7 +25,9 @@ void ConsoleLog::endline(LogLevel level, std::string &&msg) {
   _lock.unlock();
 }
 
-ConsoleLog::ConsoleLog() : _lock(), _local_time() { std::ios::sync_with_stdio(false); }
+ConsoleLog::ConsoleLog() : _lock(), _local_time() {
+  std::ios::sync_with_stdio(false);
+}
 
 std::ostream &operator<<(std::ostream &stream, const tm *tm) {
   return stream << 1900 + tm->tm_year << '-' << std::setfill('0')
@@ -51,4 +53,3 @@ void ConsoleLog::write(const tm *tm, const char *level, const char *msg) {
             << std::endl;
   std::cout.flush();
 }
-
