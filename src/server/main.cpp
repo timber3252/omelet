@@ -5,212 +5,332 @@
 #include "../base/linux/aes.h"
 #include "../base/linux/global.h"
 #include "../base/linux/log.h"
+#include "../base/linux/router.h"
+#include "../base/linux/thread_safe.h"
 
-uint16_t server_port = 21121, client_listen_port[kMaxConnections];
-uint32_t server_sock, client_socks[kMaxConnections], client_ip[kMaxConnections],
-    client_nat_ip[kMaxConnections];
 ConsoleLog logc;
-char server_ip[kMinBufSize] = "0.0.0.0";
+ipv4_address_t local_address_n;
+port_t local_port_n;
+sockfd_t sockfd;
+Allocator al;
+Counter packet_id;
+Set reliable_packets;
 
-void init() {
-  server_sock = socket(PF_INET, SOCK_STREAM, 0);
-  if (server_sock == -1) {
-    logc(LogLevel::Fatal) << "Failed to create socket object.";
+void init_socket() {
+  sockfd = socket(PF_INET, SOCK_DGRAM, 0);
+
+  if (sockfd < 0) {
+    logc(LogLevel::Fatal) << "Failed to create socket object (errno = " << errno
+                          << ")";
     exit(-1);
   }
+
   sockaddr_in addr{};
   addr.sin_family = PF_INET;
-  addr.sin_port = htons(server_port);
-  addr.sin_addr.s_addr = inet_addr(server_ip);
-  if (bind(server_sock, (sockaddr *)&addr, sizeof addr) == -1) {
-    logc(LogLevel::Fatal) << "Failed to bind ip address.";
+  addr.sin_port = local_port_n;
+  addr.sin_addr.s_addr = local_address_n;
+
+  if (bind(sockfd, (sockaddr *)&addr, sizeof addr) == -1) {
+    logc(LogLevel::Fatal) << "Failed to bind ip address (errno = " << errno
+                          << ")";
     exit(-1);
   }
-  if (listen(server_sock, kMaxConnections) == -1) {
-    logc(LogLevel::Fatal) << "Failed to listen on " << server_ip << ':'
-                          << server_port;
-    exit(-1);
-  }
-  logc(LogLevel::Info) << "Listening on " << server_ip << ':' << server_port;
+
+  logc(LogLevel::Info) << "Server was started on " << inet_ntoa(addr.sin_addr)
+                       << ':' << ntohs(addr.sin_port);
 }
 
-void *serve_thread(void *p) {
-  int fd = *static_cast<int *>(p), self = 0;
-  sockaddr_in client_sa{};
-  socklen_t client_sa_len = sizeof client_sa;
-  getpeername(fd, (sockaddr *)&client_sa, &client_sa_len);
-  for (int i = 0; i < kMaxConnections; ++i) {
-    if (client_socks[i] == fd) {
-      self = i;
+// 提供较为可靠的发包机制，收到对方的确认包后结束，或者超过指定时间后被舍弃
+void *reliable_send(void *p) {
+  auto arg = (std::pair<Packet<kALBufferSize> *, sockaddr_in> *)p;
+  auto *sendout = new uint8_t[kALBufferSize];
+  socklen_t addr_len = sizeof(sockaddr_in);
+  aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
+              arg->first->header.length, aes_key, sendout);
+  sendto(sockfd, sendout,
+         (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
+             kAesBlockSize,
+         0, (sockaddr *)&(arg->second), addr_len);
+
+  int usecs = 10000;
+  for (int i = 0; i < 11; ++i) {
+    usleep(usecs);
+    usecs = usecs * 2;
+
+    if (!reliable_packets.exist(arg->first->header.packet_id)) {
+      if (arg->first->header.packet_type == PACKET_TYPE_VERIFICATION) {
+        logc(LogLevel::Info) << "Client " << arg->first->header.virtual_ip_n
+                             << " has connected to the server";
+      }
+      logc(LogLevel::Info) << "Reliable packet " << arg->first->header.packet_id
+                           << " was received by the client "
+                           << arg->first->header.virtual_ip_n;
       break;
     }
+
+    sendto(sockfd, sendout,
+           (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
+               kAesBlockSize,
+           0, (sockaddr *)&(arg->second), addr_len);
   }
-  while (true) {
-    uint8_t output[kBufSize] = {0}, buf[kBufSize] = {0};
-    int len = recv(fd, buf, sizeof buf, 0);
-    //    logc(LogLevel::Debug) << "recv len: " << len;
-    if (len <= 0) {
-      int i = 0;
-      for (i = 0; i < kMaxConnections; ++i) {
-        if (client_socks[i] == fd) {
-          client_socks[i] = 0;
-          client_ip[i] = 0;
-          client_listen_port[i] = 0;
-          break;
-        }
-      }
-      logc(LogLevel::Info) << "Client " << fd << "("
-                           << inet_ntoa(client_sa.sin_addr) << ':'
-                           << ntohs(client_sa.sin_port) << ") has leaved.";
-      pthread_exit(nullptr);
-    }
-    if (aes_decrypt(reinterpret_cast<const unsigned char *>(buf), len, aes_key,
-                    output) < 0) {
-      logc(LogLevel::Info) << "Packet from client " << fd << "("
-                           << inet_ntoa(client_sa.sin_addr) << ':'
-                           << ntohs(client_sa.sin_port)
-                           << ") could not be decrypted.";
-      continue;
-    } else {
-      switch (output[0]) {
-        case PACKET_HEARTBEAT: {
-          //          logc(LogLevel::Debug) << "Packet decrypted: heartbeat";
-          send(fd, buf, len, 0);
-          continue;
-        }
-        case PACKET_QUERY_NAT_SELF: {
-          logc(LogLevel::Debug) << "Packet decrypted: query nat self";
-          uint8_t reply[kMinBufSize] = {0x00};
-          reply[0] = PACKET_QUERY_NAT_SELF;
-          reply[1] = (*reinterpret_cast<const int *>(&client_sa.sin_addr) &
-                      0xff000000) >>
-                     24;
-          reply[2] = (*reinterpret_cast<const int *>(&client_sa.sin_addr) &
-                      0x00ff0000) >>
-                     16;
-          reply[3] = (*reinterpret_cast<const int *>(&client_sa.sin_addr) &
-                      0x0000ff00) >>
-                     8;
-          reply[4] =
-              *reinterpret_cast<const int *>(&client_sa.sin_addr) & 0x000000ff;
-          reply[5] = client_listen_port[self] & 0x00ff;
-          reply[6] = (client_listen_port[self] & 0xff00) >> 8;
-          reply[7] = 0x00;
-          if (aes_encrypt(reinterpret_cast<const unsigned char *>(reply), 8,
-                          aes_key, buf) == 0) {
-            send(fd, buf, AES_BLOCK_SIZE, 0);
-          }
-          continue;
-        }
-        case PACKET_QUERY_CLIENT_LIST: {
-          logc(LogLevel::Debug) << "Packet decrypted: query client list";
-          uint8_t reply[kBufSize] = {0x00};
-          int cnt = 2;
-          for (int i = 0; i < kMaxConnections; ++i) {
-            if (client_socks[i] > 0) {
-              ++reply[1];
-              reply[cnt++] = client_ip[i] & 0x000000ff;
-              reply[cnt++] = (client_ip[i] & 0x0000ff00) >> 8;
-              reply[cnt++] = (client_ip[i] & 0x00ff0000) >> 16;
-              reply[cnt++] = (client_ip[i] & 0xff000000) >> 24;
-              reply[cnt++] = (client_nat_ip[i] & 0xff000000) >> 24;
-              reply[cnt++] = (client_nat_ip[i] & 0x00ff0000) >> 16;
-              reply[cnt++] = (client_nat_ip[i] & 0x0000ff00) >> 8;
-              reply[cnt++] = client_nat_ip[i] & 0x000000ff;
-              while (client_listen_port[i] == 0) {
-                sleep(1);
-              }
-              reply[cnt++] = client_listen_port[i] & 0x00ff;
-              reply[cnt++] = (client_listen_port[i] & 0xff00) >> 8;
-            }
-          }
-          reply[0] = PACKET_QUERY_CLIENT_LIST;
-          memset(buf, 0x00, sizeof buf);
-          //          for (int i = 0; i < cnt; ++i) {
-          //            logc(LogLevel::Debug) << int(reply[i]);
-          //          }
-          if (aes_encrypt(reinterpret_cast<const uint8_t *>(reply), cnt,
-                          aes_key, buf) == 0) {
-            send(fd, buf,
-                 static_cast<size_t>(
-                     ceil(cnt / static_cast<double>(AES_BLOCK_SIZE))) *
-                     AES_BLOCK_SIZE,
-                 0);
-          }
-          continue;
-        }
-        case PACKET_REG: {
-          client_listen_port[self] = (output[1] | (output[2] << 8));
-          if (client_nat_ip[self] == 0x0100007f) {  // 127.0.0.1 TODO
-            client_nat_ip[self] = (output[3] | (output[4] << 8) |
-                                   (output[5] << 16) | (output[6] << 24));
-          }
-          logc(LogLevel::Debug)
-              << "Packet decrypted: reg " << client_listen_port[self] << ' '
-              << client_nat_ip[self];
-          continue;
-        }
-      }
-    }
-  }
+
+  reliable_packets.remove(arg->first->header.packet_id);
+  delete[] sendout;
+  delete arg;
+  pthread_exit(nullptr);
 }
 
-void serve() {
-  logc(LogLevel::Info) << "Server has started.";
-  const int ip_start = 0x0a010000, ip_end = 0x0ac8ffff;
-  union {
-    int ip_address_v4_i;
-    uint8_t ip_address_v4_s[4];
-  } cnt;
-  cnt.ip_address_v4_i = ip_start;
-  while (true) {
-    sockaddr_in client_addr{};
-    socklen_t len = sizeof client_addr;
-    int fd = accept(server_sock, (sockaddr *)&client_addr, &len);
-    if (fd == -1) {
-      logc(LogLevel::Error)
-          << "Failed to accept client. (errno = " << errno << ")";
-      continue;
-    }
-    int i = 0;
-    for (i = 0; i < kMaxConnections; ++i) {
-      if (client_socks[i] == 0) {
-        uint8_t buf[kMinBufSize];
-        client_socks[i] = fd;
-        client_ip[i] = ++cnt.ip_address_v4_i;
-        client_nat_ip[i] = client_addr.sin_addr.s_addr;
-        logc(LogLevel::Debug) << client_ip[i] << ' ' << client_nat_ip[i];
-        uint8_t in[kMinBufSize];
-        in[0] = PACKET_FIRST_CONFIRM;
-        in[1] = cnt.ip_address_v4_s[0];
-        in[2] = cnt.ip_address_v4_s[1];
-        in[3] = cnt.ip_address_v4_s[2];
-        in[4] = cnt.ip_address_v4_s[3];
-        logc(LogLevel::Debug) << int(in[4]) << '.' << int(in[3]) << '.'
-                              << int(in[2]) << '.' << int(in[1]);
-        aes_encrypt(in, 5, aes_key, buf);
-        send(fd, buf, AES_BLOCK_SIZE, 0);
-        pthread_t tid;
-        pthread_create(&tid, nullptr, serve_thread, &fd);
+// 对获取到的数据包进行解析
+void *resolve_packet(void *p) {
+  auto arg = (std::pair<Packet<kALBufferSize> *, sockaddr_in> *)p;
+  uint8_t type = arg->first->header.packet_type;
+  socklen_t addr_len = sizeof(sockaddr_in);
+  auto *sendout = new uint8_t[kALBufferSize];
+
+  if ((type & PACKET_NEED_REPLY) > 0) {
+    type &= PACKET_UNIQUE_OPERATION;
+
+    switch (type) {
+      // 对于心跳包可以回复，但对方收不到也没有问题，同时起着保持 NAT 不变的作用
+      case PACKET_TYPE_HEARTBEAT: {
+        arg->first->header.set(packet_id.add(), PACKET_SERVER,
+                               PACKET_TYPE_HEARTBEAT | PACKET_NO_REPLY,
+                               sizeof(arg->first->header), 0);
         logc(LogLevel::Info)
-            << "Client " << fd << "(" << inet_ntoa(client_addr.sin_addr) << ':'
-            << ntohs(client_addr.sin_port) << ") has connected to the server.";
+            << "Received HEARTBEAT request from client "
+            << arg->first->header.virtual_ip_n
+            << ", reply packet = " << arg->first->header.packet_id;
+
+        aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
+                    arg->first->header.length, aes_key, sendout);
+        sendto(sockfd, sendout,
+               (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
+                   kAesBlockSize,
+               0, (sockaddr *)&(arg->second), addr_len);
+        break;
+      }
+
+      // 获取客户端路由表操作，需要注意阻塞问题和多次发包问题（因为数据量相对较大
+      case PACKET_TYPE_GET_ROUTERS: {
+        int ncnt = al.query_all(arg->first->data,
+                                kALBufferSize - sizeof(arg->first->header));
+        arg->first->header.set(packet_id.add(), PACKET_SERVER,
+                               PACKET_TYPE_GET_ROUTERS | PACKET_NEED_REPLY,
+                               sizeof(arg->first->header) + ncnt, 0);
+        logc(LogLevel::Info)
+            << "Received GET_ROUTERS request from client "
+            << arg->first->header.virtual_ip_n
+            << ", reliable reply packet = " << arg->first->header.packet_id;
+
+        reliable_packets.insert(
+            arg->first->header
+                .packet_id);  // 意味着客户端相同意义的申请只能发一次
+        pthread_t tid;
+        pthread_create(&tid, nullptr, reliable_send, arg);
+        break;
+      }
+
+      // 是客户端发给服务器的第一个包，返回其 NAT 地址用于配置本机 TUN 设备
+      case PACKET_TYPE_VERIFICATION: {
+        union {
+          ipv4_address_t i;
+          uint8_t s[4];
+        } virtual_ip_n;
+
+        virtual_ip_n.i = arg->first->header.virtual_ip_n;
+
+        logc(LogLevel::Info)
+            << "Received VERIFICATION request from client "
+            << arg->first->header.virtual_ip_n
+            << ", reliable reply packet = " << arg->first->header.packet_id;
+
+        memcpy(arg->first->data, virtual_ip_n.s, sizeof virtual_ip_n.s);
+
+        arg->first->header.set(packet_id.add(), PACKET_SERVER,
+                               PACKET_TYPE_VERIFICATION | PACKET_NEED_REPLY,
+                               sizeof(arg->first->header) + 4, 0);
+        reliable_packets.insert(arg->first->header.packet_id);
+        pthread_t tid;
+        pthread_create(&tid, nullptr, reliable_send, arg);
+
         break;
       }
     }
-    if (i == kMaxConnections) {
-      const char *str = "Connection rejected: server is full.";
-      send(fd, str, strlen(str), 0);
-      close(fd);
+  } else if ((type & PACKET_NO_REPLY) > 0) {
+    type &= PACKET_UNIQUE_OPERATION;
+
+    switch (type) {
+      // 客户端主动退出服务器，是显式的退出，但并非严格（部分客户端可能已经无效，但仍然不认为是退出了服务器）
+      case PACKET_TYPE_LEAVE: {
+        al.remove(arg->first->header.virtual_ip_n);
+        logc(LogLevel::Info) << "Client " << arg->first->header.virtual_ip_n
+                             << " was explicitly leaved";
+        break;
+      }
+
+      case PACKET_TYPE_HANDSHAKE_REQUEST: {
+        // 保证握手请求效率，不进行可靠发包，而是每次客户端向服务端发三个相同 ID
+        // 的包，服务端每收到一个握手请求，就向目标客户端发送请求，在丢包率较为合理的情况下能够保证正常
+
+        union {
+          ipv4_address_t i;
+          uint8_t s[4];
+        } dest_ip_n;
+        memcpy(dest_ip_n.s, arg->first->data, 4);  // 第一次请求为虚拟 IP
+
+        logc(LogLevel::Info)
+            << "Received HANDSHAKE request from client "
+            << arg->first->header.virtual_ip_n << " to client " << dest_ip_n.i;
+        arg->first->header.set(packet_id.add(), PACKET_SERVER,
+                               PACKET_TYPE_HANDSHAKE_REQUEST | PACKET_NO_REPLY,
+                               sizeof(arg->first->header) + sizeof(Peer), 0);
+
+        // 请求转发时为物理 IP + 端口
+        Peer res = al.query(dest_ip_n.i);
+        memcpy(arg->first->data, &res, sizeof res);
+
+        aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
+                    arg->first->header.length, aes_key, sendout);
+        sendto(sockfd, sendout,
+               (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
+                   kAesBlockSize,
+               0, (sockaddr *)&(arg->second), addr_len);
+
+        break;
+      }
+
+      // 与可靠发包机制对应
+      case PACKET_TYPE_GET_ROUTERS: {
+        reliable_packets.remove(arg->first->header.packet_id);
+        break;
+      }
+
+      case PACKET_TYPE_VERIFICATION: {
+        reliable_packets.remove(arg->first->header.packet_id);
+        break;
+      }
     }
   }
+  delete[] sendout;
+  pthread_exit(nullptr);
 }
 
 int main(int argc, char *argv[]) {
-  if (argc > 1) {
-    server_port = atoi(argv[1]);
+  int ch;
+  local_port_n = 33106, local_address_n = 0;
+
+  while ((ch = getopt(argc, argv, "hl:k:")) != -1) {
+    switch (ch) {
+      case 'h': {
+        printf(
+            "Usage: %s arguments ..                                        \n"
+            "  -h              show help                                   \n"
+            "  -l address      set local address (default = 0.0.0.0:21121) \n"
+            "  -k aes_key      use specific aes key (length = 128)         \n",
+            argv[0]);
+        return 0;
+      }
+
+      case 'l': {
+        std::string local_address(optarg);
+        int pos = local_address.find(':');
+        local_address_n = inet_addr(local_address.substr(0, pos).c_str());
+        local_port_n = htons(std::stoi(local_address.substr(pos + 1)));
+
+        if (local_address_n == 0xffffffff || local_port_n == 0) {
+          logc(LogLevel::Fatal) << "Invalid local address: " << local_address;
+          exit(-1);
+        }
+
+        break;
+      }
+
+      case 'k': {
+        FILE *fo = fopen(optarg, "r");
+
+        if (fo == nullptr) {
+          logc(LogLevel::Fatal) << "File " << optarg << " does not exist";
+          exit(-1);
+        }
+
+        memset(aes_key, 0x00, sizeof aes_key);
+        int nread = fread(aes_key, sizeof(uint8_t), kAesKeyLength, fo);
+
+        if (nread != kAesKeyLength) {
+          logc(LogLevel::Fatal)
+              << "File " << optarg << " does not contain valid aes key";
+          exit(-1);
+        }
+
+        break;
+      }
+    }
   }
-  init();
-  serve();
+
+  init_socket();
+
+  uint8_t buf[kALBufferSize], dbuf[kALBufferSize];
+  sockaddr_in client_addr{};
+  socklen_t client_addr_len = sizeof(sockaddr_in);
+  ipv4_address_t begin_h = 0x0a010000, end_h = 0x0ac8ffff, now_h = begin_h;
+
+  while (true) {
+    int nrecv = recvfrom(sockfd, buf, kALBufferSize, 0,
+                         (sockaddr *)&client_addr, &client_addr_len);
+
+    if (nrecv < 0) {
+      continue;
+    }
+
+    if (aes_decrypt(buf, nrecv, aes_key, dbuf) < 0) {
+      continue;
+    }
+
+    auto *arg = new std::pair<Packet<kALBufferSize> *, sockaddr_in>();
+
+    memcpy(&(arg->first->header), dbuf, sizeof(arg->first->header));
+
+    // 数据包对象必须是服务器，否则舍弃
+    if (arg->first->header.packet_source != PACKET_SERVER) {
+      continue;
+    }
+
+    // 如果是第一次发包，不是 VERIFICATION 请求则舍弃
+    if (!al.exist(arg->first->header.virtual_ip_n) &&
+        arg->first->header.packet_type != PACKET_TYPE_VERIFICATION) {
+      continue;
+    }
+
+    // 第一次发包，但服务器已满
+    if (!al.exist(arg->first->header.virtual_ip_n) &&
+        al.size() > kMaxConnections) {
+      // TODO: 返回包
+      continue;
+    }
+
+    // 如果不是第一次发包，是 VERIFICATION 请求则舍弃
+    if (al.exist(arg->first->header.virtual_ip_n) &&
+        arg->first->header.packet_type == PACKET_TYPE_VERIFICATION) {
+      continue;
+    }
+
+    // 分配新的虚拟 IP 地址，注意统一使用网络字节序
+    if (!al.exist(arg->first->header.virtual_ip_n)) {
+      arg->first->header.virtual_ip_n = htonl(++now_h);
+      al.insert(arg->first->header.virtual_ip_n,
+                Peer(client_addr.sin_addr.s_addr, client_addr.sin_port));
+    }
+
+    memcpy(arg->first->data, dbuf + sizeof(arg->first->header),
+           nrecv - sizeof(arg->first->header));
+
+    arg->second = client_addr;
+
+    // 保证该过程不阻塞
+    pthread_t tid;
+    pthread_create(&tid, nullptr, resolve_packet, (void *)arg);
+
+    memset(buf, 0x00, sizeof buf);
+  }
   return 0;
 }

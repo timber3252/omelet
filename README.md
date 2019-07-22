@@ -8,6 +8,5 @@ A cross-platform dynamic private network.
 ## TODO
 
 - [ ] better prompt info
-- [ ] multi-thread optimize
-- [ ] remove debug code
+- [ ] debug
 - [ ] better efficiency and adjust code

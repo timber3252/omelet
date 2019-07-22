@@ -6,19 +6,29 @@
 #define OMELET_ROUTER_H
 
 #include "global.h"
+#include "thread_safe.h"
 
 class Router {
  public:
   struct RouterNode {
-    RouterNode() : ip(0), port(0), sockfd(0) { ch[0] = ch[1] = 0; }
+    RouterNode() : ip(0), port(0) { ch[0] = ch[1] = 0; }
 
     RouterNode *ch[2];
     uint32_t ip;
     uint16_t port;
-    uint32_t sockfd;
   };
 
   Router() { rt = new RouterNode(); }
+  ~Router() { clean(rt); }
+
+  void clean(RouterNode *now) {
+    for (int i = 0; i < 2; ++i) {
+      if (now->ch[i] != nullptr) {
+        clean(now->ch[i]);
+      }
+    }
+    delete now;
+  }
 
   void insert(uint32_t key, uint32_t ip, uint16_t port) {
     mtx.lock();
@@ -42,16 +52,35 @@ class Router {
     return now;
   }
 
-  void modify(uint32_t key, uint32_t sock) {
-    mtx.lock();
-    RouterNode *now = rt;
-    for (int i = 0; i < 32; ++i, key >>= 1) {
-      int nxt = key & 1;
-      if (now->ch[nxt] == nullptr) return;
-      now = now->ch[nxt];
+  void update_all(uint8_t *buf, uint16_t len, Set &s) {
+    if (len % 6 != 0) {
+      return;
     }
-    now->sockfd = sock;
-    mtx.unlock();
+
+    int ncnt = len / 6, cnt = 0;
+    union {
+      ipv4_address_t i;
+      uint8_t s[4];
+    } virtual_ip_n, dest_ip_n;
+    port_t dest_port_n;
+
+    for (int i = 0; i < ncnt; ++i) {
+      virtual_ip_n.s[0] = buf[cnt++];
+      virtual_ip_n.s[1] = buf[cnt++];
+      virtual_ip_n.s[2] = buf[cnt++];
+      virtual_ip_n.s[3] = buf[cnt++];
+
+      dest_ip_n.s[0] = buf[cnt++];
+      dest_ip_n.s[1] = buf[cnt++];
+      dest_ip_n.s[2] = buf[cnt++];
+      dest_ip_n.s[3] = buf[cnt++];
+
+      dest_port_n = buf[cnt++];
+      dest_port_n |= (buf[cnt++] << 8);
+
+      s.insert(virtual_ip_n.i);
+      this->insert(virtual_ip_n.i, dest_ip_n.i, dest_port_n);
+    }
   }
 
  private:
