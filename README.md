@@ -13,3 +13,4 @@ A cross-platform dynamic virtual network. Currently it is in the initial develop
 - [ ] better efficiency and adjust code
 - [ ] support for windows
 - [ ] focus on multi-thread safety
+- [ ] log class should show which thread the info belongs

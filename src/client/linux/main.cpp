@@ -21,6 +21,35 @@ int tun_fd, nread;
 char tun_name[IFNAMSIZ];
 volatile bool need_verification, is_update_routers;
 
+// 主动离开，不保证可靠性，丢包则忽略
+void do_leave(int signum) {
+  OmeletProtoHeader header;
+  header.set(packet_id.add(), PACKET_SERVER,
+             PACKET_TYPE_LEAVE | PACKET_NO_REPLY, sizeof header,
+             local_virtual_ip_n);
+  auto *dbuf = new uint8_t[kAesBlockSize];
+  aes_encrypt(reinterpret_cast<const uint8_t *>(&header), sizeof header,
+              aes_key, dbuf);
+
+  sockaddr_in addr{};
+  addr.sin_family = PF_INET;
+  addr.sin_port = server_port_n;
+  addr.sin_addr.s_addr = server_address_n;
+  socklen_t addr_len = sizeof(sockaddr_in);
+
+  sendto(sockfd, dbuf, kAesBlockSize, 0, (sockaddr *)&addr, addr_len);
+  close(sockfd);
+
+  logc(LogLevel::Info) << "Client has leaved from the server";
+
+  need_verification = 0;
+  exit(signum);
+}
+
+void global_exit(int code) {
+  do_leave(code);
+}
+
 void init_socket() {
   sockfd = socket(PF_INET, SOCK_DGRAM, 0);
 
@@ -87,6 +116,8 @@ int set_host_addr(const char *dev, int virtual_ip) {
     return -1;
   }
 
+  logc(LogLevel::Debug) << "Set host addr: " << virtual_ip;
+
   if (ioctl(sockfd, SIOCSIFADDR, (void *)&ifr) < 0) {
     perror("ioctl SIOCSIFADDR");
     return -2;
@@ -132,7 +163,7 @@ void *do_heartbeat(void *) {
   socklen_t addr_len = sizeof(sockaddr_in);
 
   while (true) {
-    sendto(sockfd, dbuf, header.length, 0, (sockaddr *)&addr, addr_len);
+    sendto(sockfd, dbuf, kAesBlockSize, 0, (sockaddr *)&addr, addr_len);
     sleep(5);
   }
 
@@ -154,15 +185,28 @@ void *resolve_packet_from_peer(void *p) {
     switch (type) {
       // 获取到的 IP 包直接写入 TUN 设备
       case PACKET_TYPE_RAW_IP_PACKET: {
-        int nwrite =
-            write(tun_fd, arg->first->data,
-                  arg->first->header.length - sizeof(arg->first->header));
+        logc(LogLevel::Debug)
+            << "Received RAW_IP_PACKET (length = " << arg->first->header.length - sizeof(arg->first->header) << ") request from peer "
+            << arg->first->header.virtual_ip_n;
+
+        int nwrite = write(tun_fd, arg->first->data,
+                           arg->first->header.length - sizeof(arg->first->header));
+
+        if (nwrite < 0) {
+          logc(LogLevel::Error) << "Failed to write data to " << tun_name << ", errno = " << errno;
+          break;
+        } else {
+          logc(LogLevel::Debug) << "Write " << nwrite << " bytes data to tun device";
+        }
+
+        // TODO: 封装统一的发送，接收函数
         break;
       }
     }
   }
 
   //  delete[] sendout;
+  delete arg->first;
   delete arg;
   pthread_exit(nullptr);
 }
@@ -186,11 +230,10 @@ void *resolve_packet_from_server(void *p) {
             arg->first->header.length - sizeof(arg->first->header),
             virtual_ips);
 
-        router_update.lock();
         if (is_update_routers != 0) {
           is_update_routers = 0;
+          router_update.unlock();
         }
-        router_update.unlock();
 
         arg->first->header.set(arg->first->header.packet_id, PACKET_SERVER,
                                PACKET_TYPE_GET_ROUTERS | PACKET_NO_REPLY,
@@ -217,6 +260,7 @@ void *resolve_packet_from_server(void *p) {
 
           memcpy(virtual_ip.s, arg->first->data, sizeof virtual_ip.s);
           local_virtual_ip_n = virtual_ip.i;
+
           virtual_ips.insert(local_virtual_ip_n);
         }
         arg->first->header.set(arg->first->header.packet_id, PACKET_SERVER,
@@ -230,7 +274,7 @@ void *resolve_packet_from_server(void *p) {
                0, (sockaddr *)&(arg->second), addr_len);
 
         verification.lock();
-        need_verification = false;
+        need_verification = 0;
         verification.unlock();
         break;
       }
@@ -241,8 +285,7 @@ void *resolve_packet_from_server(void *p) {
     switch (type) {
       // 收到握手请求则立即进行握手操作，不考虑丢包问题
       case PACKET_TYPE_HANDSHAKE_REQUEST: {
-        logc(LogLevel::Info) << "Received HANDSHAKE request from server "
-                             << arg->first->header.virtual_ip_n;
+        logc(LogLevel::Info) << "Received HANDSHAKE request from server";
 
         Peer dest;
         memcpy(&dest, arg->first->data,
@@ -270,6 +313,7 @@ void *resolve_packet_from_server(void *p) {
     }
   }
 
+  delete arg->first;
   delete arg;
   delete[] sendout;
   pthread_exit(nullptr);
@@ -294,11 +338,17 @@ void *receive_packet(void *) {
     }
 
     auto *arg = new std::pair<Packet<kALBufferSize> *, sockaddr_in>();
+    arg->first = new Packet<kALBufferSize>();
 
     memcpy(&(arg->first->header), dbuf, sizeof(arg->first->header));
     memcpy(arg->first->data, dbuf + sizeof(arg->first->header),
-           nrecv - sizeof(arg->first->header));
+           arg->first->header.length - sizeof(arg->first->header));
+
     arg->second = peer_addr;
+
+    logc(LogLevel::Debug) << "Received packet: [ packet_source = "
+                          << int(arg->first->header.packet_source) << ", packet_type = "
+                          << int(arg->first->header.packet_type) << "]";
 
     if (arg->first->header.packet_source == PACKET_SERVER) {
       pthread_t tid;
@@ -340,6 +390,7 @@ void *wait_and_send(void *p) {
   }
 
   delete[] sendout;
+  delete arg->first;
   delete arg;
   pthread_exit(nullptr);
 }
@@ -363,7 +414,7 @@ void *do_router_update(void *) {
 
   socklen_t addr_len = sizeof(sockaddr_in);
 
-  sendto(sockfd, dbuf, header.length, 0, (sockaddr *)&addr, addr_len);
+  sendto(sockfd, dbuf, kAesBlockSize, 0, (sockaddr *)&addr, addr_len);
 
   // 只发送一次，进行 1s 的等待，没有回复则放弃
   for (int i = 0; i < 20; ++i) {
@@ -373,7 +424,6 @@ void *do_router_update(void *) {
     usleep(50000);
   }
 
-  router_update.unlock();
   delete[] dbuf;
   pthread_exit(nullptr);
 }
@@ -385,9 +435,14 @@ int do_verification() {
   header.set(packet_id.add(), PACKET_SERVER,
              PACKET_TYPE_VERIFICATION | PACKET_NEED_REPLY, sizeof header,
              local_virtual_ip_n);
+
   auto *dbuf = new uint8_t[kAesBlockSize];
   aes_encrypt(reinterpret_cast<const uint8_t *>(&header), sizeof header,
               aes_key, dbuf);
+
+  logc(LogLevel::Debug) << "Send packet: [ packet_source = "
+                        << int(header.packet_source) << ", packet_type = "
+                        << int(header.packet_type) << "]";
 
   sockaddr_in addr{};
   addr.sin_family = PF_INET;
@@ -396,7 +451,7 @@ int do_verification() {
 
   socklen_t addr_len = sizeof(sockaddr_in);
 
-  sendto(sockfd, dbuf, header.length, 0, (sockaddr *)&addr, addr_len);
+  sendto(sockfd, dbuf, kAesBlockSize, 0, (sockaddr *)&addr, addr_len);
 
   for (int i = 0; i < 20; ++i) {
     verification.lock();
@@ -413,29 +468,6 @@ int do_verification() {
 
   delete[] dbuf;
   return -1;
-}
-
-// 主动离开，不保证可靠性，丢包则忽略
-void do_leave(int signum) {
-  OmeletProtoHeader header;
-  header.set(packet_id.add(), PACKET_SERVER,
-             PACKET_TYPE_LEAVE | PACKET_NO_REPLY, sizeof header,
-             local_virtual_ip_n);
-  auto *dbuf = new uint8_t[kAesBlockSize];
-  aes_encrypt(reinterpret_cast<const uint8_t *>(&header), sizeof header,
-              aes_key, dbuf);
-
-  sockaddr_in addr{};
-  addr.sin_family = PF_INET;
-  addr.sin_port = server_port_n;
-  addr.sin_addr.s_addr = server_address_n;
-  socklen_t addr_len = sizeof(sockaddr_in);
-
-  sendto(sockfd, dbuf, header.length, 0, (sockaddr *)&addr, addr_len);
-  close(sockfd);
-
-  logc(LogLevel::Info) << "Client received signal " << signum
-                       << " and leaved from the server";
 }
 
 void *local_service_sub(void *p) {
@@ -493,7 +525,8 @@ void *local_service_sub(void *p) {
 
 void *local_service(void *) {
   // 本机监听，使用有连接 socket
-  int local_service_sockfd;
+  int local_service_sockfd = socket(PF_INET, SOCK_STREAM, 0);;
+
   sockaddr_in local_application_request_addr{};
   local_application_request_addr.sin_family = PF_INET;
   local_application_request_addr.sin_port = local_application_request_port_n;
@@ -502,16 +535,16 @@ void *local_service(void *) {
 
   if (bind(local_service_sockfd, (sockaddr *)&local_application_request_addr,
            sizeof local_application_request_addr) == -1) {
-    logc(LogLevel::Fatal) << "(Local Service) Failed to bind ip address.";
-    exit(-1);
+    logc(LogLevel::Fatal) << "Failed to bind ip address in local service";
+    global_exit(-1);
   }
 
   if (listen(local_service_sockfd, kMaxConnections) == -1) {
-    logc(LogLevel::Fatal) << "(Local Service) Failed to listen on "
+    logc(LogLevel::Fatal) << "Failed to listen on "
                           << inet_ntoa(local_application_request_addr.sin_addr)
                           << ':'
-                          << ntohs(local_application_request_addr.sin_port);
-    exit(-1);
+                          << ntohs(local_application_request_addr.sin_port) << " in local service";
+    global_exit(-1);
   }
 
   // 等待上层应用加入，不记录
@@ -539,10 +572,11 @@ void *local_service(void *) {
 int main(int argc, char *argv[]) {
   int ch;
   // 此处的常数均是以网络字节顺序而定的，而非字节顺序，修改时要注意
+  local_virtual_ip_n = 0;
   server_port_n = 33106, server_address_n = 0;
   local_port_n = 1168, local_address_n = 0;
   local_application_request_port_n = 48978;
-  local_application_request_ip_n = 16777343;
+  local_application_request_ip_n = 0x0100007f;
 
   while ((ch = getopt(argc, argv, "hl:k:s:b:")) != -1) {
     switch (ch) {
@@ -643,8 +677,9 @@ int main(int argc, char *argv[]) {
 
   // 确保 VERIFICATION 包绝对可靠接收
   int secs = 1, nverify = 0;
+  need_verification = 1;
   while (true) {
-    logc(LogLevel::Info) << "Attempt to connect to the server: attempt"
+    logc(LogLevel::Info) << "Attempt to connect to the server: attempt "
                          << ++nverify;
     if (!do_verification()) {
       logc(LogLevel::Info) << "Successfully connected to the server";
@@ -669,7 +704,7 @@ int main(int argc, char *argv[]) {
     logc(LogLevel::Fatal) << "Failed to allocate interface.";
     exit(-1);
   }
-  logc(LogLevel::Info) << "Open tun device: " << tun_name << " for reading.";
+  logc(LogLevel::Info) << "Device " << tun_name << " was started";
 
   // 设置 TUN 设备虚拟地址
   int ret = set_host_addr(tun_name, local_virtual_ip_n);
@@ -696,12 +731,14 @@ int main(int argc, char *argv[]) {
   // 从 TUN 设备读取 IP 数据包，格式为 IP 头部 + (TCP / UDP / ICMP 等协议头部) +
   // 内容
   while (true) {
+    // TODO: REMOVE
     memset(buf.buffer, 0x00, sizeof buf.buffer);
+    memset(dbuf, 0x00, sizeof dbuf);
     nread = read(tun_fd, buf.buffer, kNLBufferSize);
     if (nread < 0) {
       logc(LogLevel::Error) << "Failed to read from interface.";
       close(tun_fd);
-      exit(-1);
+      global_exit(-1);
     }
 
     union {
@@ -716,15 +753,17 @@ int main(int argc, char *argv[]) {
     dest_ip_n.s[3] = buf.buffer[19];
 
     // 保证效率，舍弃一定不符合虚拟 IP 规则的数据包
-    if (dest_ip_n.s[0] == 0x0a) {
+    if (dest_ip_n.s[0] != 0x0a) {
       continue;
     }
+
+    logc(LogLevel::Debug) << "Raw ip packet to " << int(buf.buffer[16]) << "." << int(buf.buffer[17]) << "."
+        << int(buf.buffer[18]) << "." << int(buf.buffer[19]);
 
     // 发送握手请求，可以多次发送，但对方不响应
     buf.header.set(packet_id.add(), PACKET_SERVER,
                    PACKET_TYPE_HANDSHAKE_REQUEST | PACKET_NO_REPLY,
                    sizeof(buf.header) + 4, local_virtual_ip_n);
-    memcpy(buf.buffer, dest_ip_n.s, sizeof dest_ip_n.s);
     aes_encrypt(reinterpret_cast<const uint8_t *>(&buf), buf.header.length,
                 aes_key, dbuf);
 
@@ -745,12 +784,14 @@ int main(int argc, char *argv[]) {
       }
 
       auto *arg = new std::pair<Packet<kALBufferSize> *, ipv4_address_t>();
+      arg->first = new Packet<kALBufferSize>();
 
       arg->first->header.set(packet_id.add(), PACKET_PEERS,
                              PACKET_TYPE_RAW_IP_PACKET | PACKET_NO_REPLY,
                              sizeof(OmeletProtoHeader) + nread,
                              local_virtual_ip_n);
       memcpy(arg->first->data, buf.buffer, nread);
+
       arg->second = dest_ip_n.i;
 
       // 并且创建异步等待线程，有效时长
@@ -759,6 +800,11 @@ int main(int argc, char *argv[]) {
       pthread_create(&tid_19, nullptr, wait_and_send, arg);
       continue;
     }
+
+    buf.header.set(packet_id.add(), PACKET_PEERS,
+                           PACKET_TYPE_RAW_IP_PACKET | PACKET_NO_REPLY,
+                           sizeof(OmeletProtoHeader) + nread,
+                           local_virtual_ip_n);
 
     aes_encrypt(reinterpret_cast<const uint8_t *>(&buf), buf.header.length,
                 aes_key, dbuf);

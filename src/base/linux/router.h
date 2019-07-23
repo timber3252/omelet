@@ -53,11 +53,11 @@ class Router {
   }
 
   void update_all(uint8_t *buf, uint16_t len, Set &s) {
-    if (len % 6 != 0) {
+    if (len % 10 != 0) {
       return;
     }
 
-    int ncnt = len / 6, cnt = 0;
+    int ncnt = len / 10, cnt = 0;
     union {
       ipv4_address_t i;
       uint8_t s[4];

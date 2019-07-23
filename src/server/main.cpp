@@ -45,15 +45,19 @@ void *reliable_send(void *p) {
   auto arg = (std::pair<Packet<kALBufferSize> *, sockaddr_in> *)p;
   auto *sendout = new uint8_t[kALBufferSize];
   socklen_t addr_len = sizeof(sockaddr_in);
+
   aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
               arg->first->header.length, aes_key, sendout);
-  sendto(sockfd, sendout,
+  if (sendto(sockfd, sendout,
          (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
              kAesBlockSize,
-         0, (sockaddr *)&(arg->second), addr_len);
+         0, (sockaddr *)&(arg->second), addr_len) < 0) {
+    perror("sendto");
+    // TODO
+  };
 
-  int usecs = 10000;
-  for (int i = 0; i < 11; ++i) {
+  int usecs = 500000;
+  for (int i = 0; i < 6; ++i) {
     usleep(usecs);
     usecs = usecs * 2;
 
@@ -76,6 +80,7 @@ void *reliable_send(void *p) {
 
   reliable_packets.remove(arg->first->header.packet_id);
   delete[] sendout;
+  delete arg->first;
   delete arg;
   pthread_exit(nullptr);
 }
@@ -93,13 +98,13 @@ void *resolve_packet(void *p) {
     switch (type) {
       // 对于心跳包可以回复，但对方收不到也没有问题，同时起着保持 NAT 不变的作用
       case PACKET_TYPE_HEARTBEAT: {
+        logc(LogLevel::Info)
+            << "Received HEARTBEAT request from client "
+            << arg->first->header.virtual_ip_n;
+
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
                                PACKET_TYPE_HEARTBEAT | PACKET_NO_REPLY,
                                sizeof(arg->first->header), 0);
-        logc(LogLevel::Info)
-            << "Received HEARTBEAT request from client "
-            << arg->first->header.virtual_ip_n
-            << ", reply packet = " << arg->first->header.packet_id;
 
         aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
                     arg->first->header.length, aes_key, sendout);
@@ -107,20 +112,23 @@ void *resolve_packet(void *p) {
                (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
                    kAesBlockSize,
                0, (sockaddr *)&(arg->second), addr_len);
+        delete arg->first;
+        delete arg;
+        delete[] sendout;
         break;
       }
 
       // 获取客户端路由表操作，需要注意阻塞问题和多次发包问题（因为数据量相对较大
       case PACKET_TYPE_GET_ROUTERS: {
+        logc(LogLevel::Info)
+            << "Received GET_ROUTERS request from client "
+            << arg->first->header.virtual_ip_n;
+
         int ncnt = al.query_all(arg->first->data,
                                 kALBufferSize - sizeof(arg->first->header));
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
                                PACKET_TYPE_GET_ROUTERS | PACKET_NEED_REPLY,
                                sizeof(arg->first->header) + ncnt, 0);
-        logc(LogLevel::Info)
-            << "Received GET_ROUTERS request from client "
-            << arg->first->header.virtual_ip_n
-            << ", reliable reply packet = " << arg->first->header.packet_id;
 
         reliable_packets.insert(
             arg->first->header
@@ -141,18 +149,16 @@ void *resolve_packet(void *p) {
 
         logc(LogLevel::Info)
             << "Received VERIFICATION request from client "
-            << arg->first->header.virtual_ip_n
-            << ", reliable reply packet = " << arg->first->header.packet_id;
+            << arg->first->header.virtual_ip_n;
 
         memcpy(arg->first->data, virtual_ip_n.s, sizeof virtual_ip_n.s);
 
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
                                PACKET_TYPE_VERIFICATION | PACKET_NEED_REPLY,
-                               sizeof(arg->first->header) + 4, 0);
+                               sizeof(arg->first->header) + 4, virtual_ip_n.i);
         reliable_packets.insert(arg->first->header.packet_id);
         pthread_t tid;
         pthread_create(&tid, nullptr, reliable_send, arg);
-
         break;
       }
     }
@@ -165,6 +171,9 @@ void *resolve_packet(void *p) {
         al.remove(arg->first->header.virtual_ip_n);
         logc(LogLevel::Info) << "Client " << arg->first->header.virtual_ip_n
                              << " was explicitly leaved";
+        delete arg->first;
+        delete arg;
+        delete[] sendout;
         break;
       }
 
@@ -196,22 +205,30 @@ void *resolve_packet(void *p) {
                    kAesBlockSize,
                0, (sockaddr *)&(arg->second), addr_len);
 
+        delete arg->first;
+        delete arg;
+        delete[] sendout;
         break;
       }
 
       // 与可靠发包机制对应
       case PACKET_TYPE_GET_ROUTERS: {
         reliable_packets.remove(arg->first->header.packet_id);
+        delete arg->first;
+        delete arg;
+        delete[] sendout;
         break;
       }
 
       case PACKET_TYPE_VERIFICATION: {
         reliable_packets.remove(arg->first->header.packet_id);
+        delete arg->first;
+        delete arg;
+        delete[] sendout;
         break;
       }
     }
   }
-  delete[] sendout;
   pthread_exit(nullptr);
 }
 
@@ -277,7 +294,6 @@ int main(int argc, char *argv[]) {
   while (true) {
     int nrecv = recvfrom(sockfd, buf, kALBufferSize, 0,
                          (sockaddr *)&client_addr, &client_addr_len);
-
     if (nrecv < 0) {
       continue;
     }
@@ -288,16 +304,15 @@ int main(int argc, char *argv[]) {
 
     auto *arg = new std::pair<Packet<kALBufferSize> *, sockaddr_in>();
 
+    arg->first = new Packet<kALBufferSize>();
     memcpy(&(arg->first->header), dbuf, sizeof(arg->first->header));
+
+    logc(LogLevel::Debug) << "Received packet: [ packet_source = "
+                          << int(arg->first->header.packet_source) << ", packet_type = "
+                          << int(arg->first->header.packet_type) << "]";
 
     // 数据包对象必须是服务器，否则舍弃
     if (arg->first->header.packet_source != PACKET_SERVER) {
-      continue;
-    }
-
-    // 如果是第一次发包，不是 VERIFICATION 请求则舍弃
-    if (!al.exist(arg->first->header.virtual_ip_n) &&
-        arg->first->header.packet_type != PACKET_TYPE_VERIFICATION) {
       continue;
     }
 
@@ -317,12 +332,17 @@ int main(int argc, char *argv[]) {
     // 分配新的虚拟 IP 地址，注意统一使用网络字节序
     if (!al.exist(arg->first->header.virtual_ip_n)) {
       arg->first->header.virtual_ip_n = htonl(++now_h);
+
+      // TODO: REMOVE DEBUG
+      if (client_addr.sin_addr.s_addr == 0x0100007f)
+        client_addr.sin_addr.s_addr = 0x2d01a8c0;
+
       al.insert(arg->first->header.virtual_ip_n,
                 Peer(client_addr.sin_addr.s_addr, client_addr.sin_port));
     }
 
     memcpy(arg->first->data, dbuf + sizeof(arg->first->header),
-           nrecv - sizeof(arg->first->header));
+           arg->first->header.length - sizeof(arg->first->header));
 
     arg->second = client_addr;
 
