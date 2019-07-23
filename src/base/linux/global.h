@@ -48,22 +48,22 @@ const size_t kNLBufferSize = 2048;   // NL: Network Layer
 const size_t kAesBlockSize = AES_BLOCK_SIZE;
 const size_t kAesKeyLength = 128;
 
-#define PACKET_SERVER 0xd1
-#define PACKET_PEERS 0xd2
-#define PACKET_APPLICATIONS 0xd3
+#define PACKET_SERVER                     0xd1
+#define PACKET_PEERS                      0xd2
+#define PACKET_APPLICATIONS               0xd3
 
-#define PACKET_UNIQUE_OPERATION 0b00111111
-#define PACKET_TYPE_HEARTBEAT 0b00000001          // c -> s
-#define PACKET_TYPE_HANDSHAKE 0b00000010          // c -> c
-#define PACKET_TYPE_GET_ROUTERS 0b00000011        // c -> s, must
-#define PACKET_TYPE_VERIFICATION 0b00000100       // c -> s, must
-#define PACKET_TYPE_RAW_IP_PACKET 0b00000101      // c -> c
-#define PACKET_TYPE_LEAVE 0b00000110              // c -> s
-#define PACKET_TYPE_HANDSHAKE_REQUEST 0b00000111  // c -> s then s -> c, ip
-#define PACKET_TYPE_LOCAL_GET_ROUTERS 0b00001000
-#define PACKET_TYPE_LOCAL_GET_VIRTUAL_IP 0b00001001
-#define PACKET_NO_REPLY 0b01000000
-#define PACKET_NEED_REPLY 0b10000000
+#define PACKET_UNIQUE_OPERATION           0b00111111
+#define PACKET_TYPE_HEARTBEAT             0b00000001
+#define PACKET_TYPE_HANDSHAKE             0b00000010
+#define PACKET_TYPE_GET_ROUTERS           0b00000011
+#define PACKET_TYPE_VERIFICATION          0b00000100
+#define PACKET_TYPE_RAW_IP_PACKET         0b00000101
+#define PACKET_TYPE_LEAVE                 0b00000110
+#define PACKET_TYPE_HANDSHAKE_REQUEST     0b00000111
+#define PACKET_TYPE_LOCAL_GET_ROUTERS     0b00001000
+#define PACKET_TYPE_LOCAL_GET_VIRTUAL_IP  0b00001001
+#define PACKET_NO_REPLY                   0b01000000
+#define PACKET_NEED_REPLY                 0b10000000
 
 struct OmeletProtoHeader {
   OmeletProtoHeader()
