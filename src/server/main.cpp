@@ -187,15 +187,14 @@ void *resolve_packet(void *p) {
         } dest_ip_n;
         memcpy(dest_ip_n.s, arg->first->data, 4);  // 第一次请求为虚拟 IP
 
+        Peer res = al.query(arg->first->header.virtual_ip_n);
+
         logc(LogLevel::Info)
             << "Received HANDSHAKE request from client "
             << arg->first->header.virtual_ip_n << " to client " << dest_ip_n.i;
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
                                PACKET_TYPE_HANDSHAKE_REQUEST | PACKET_NO_REPLY,
                                sizeof(arg->first->header) + sizeof(Peer), 0);
-
-        // 请求转发时为物理 IP + 端口
-        Peer res = al.query(dest_ip_n.i);
 
         sockaddr_in peer_addr{};
         peer_addr.sin_family = PF_INET;

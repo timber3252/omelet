@@ -840,23 +840,29 @@ int main(int argc, char *argv[]) {
     }
 
     buf.header.set(packet_id.add(), PACKET_PEERS,
-                           PACKET_TYPE_RAW_IP_PACKET | PACKET_NO_REPLY,
-                           sizeof(OmeletProtoHeader) + nread,
-                           local_virtual_ip_n);
-
+        PACKET_TYPE_HANDSHAKE | PACKET_NO_REPLY, sizeof(OmeletProtoHeader), local_virtual_ip_n);
     aes_encrypt(reinterpret_cast<const uint8_t *>(&buf), buf.header.length,
                 aes_key, dbuf);
-
+    
     sockaddr_in peer_addr{};
     peer_addr.sin_family = PF_INET;
     peer_addr.sin_port = res->port;
     peer_addr.sin_addr.s_addr = res->ip;
     socklen_t peer_addr_len = sizeof(sockaddr_in);
 
+    sendto(sockfd, dbuf,
+           ceil(buf.header.length / (double)kAesBlockSize) * kAesBlockSize, 0,
+           (sockaddr *)&peer_addr, peer_addr_len);
+
+    buf.header.set(packet_id.add(), PACKET_PEERS,
+                           PACKET_TYPE_RAW_IP_PACKET | PACKET_NO_REPLY,
+                           sizeof(OmeletProtoHeader) + nread,
+                           local_virtual_ip_n);
+    aes_encrypt(reinterpret_cast<const uint8_t *>(&buf), buf.header.length,
+                aes_key, dbuf);
     logc(LogLevel::Debug) << "send packet: [ packet_source = "
                           << int(buf.header.packet_source) << ", packet_type = "
                           << int(buf.header.packet_type) << "]";
-
     sendto(sockfd, dbuf,
            ceil(buf.header.length / (double)kAesBlockSize) * kAesBlockSize, 0,
            (sockaddr *)&peer_addr, peer_addr_len);

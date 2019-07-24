@@ -30,11 +30,11 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/client/linux/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="481">
-              <caret line="797" column="33" selection-start-line="797" selection-start-column="33" selection-end-line="797" selection-end-column="33" />
+            <state relative-caret-position="213">
+              <caret line="845" column="4" selection-start-line="845" selection-start-column="4" selection-end-line="845" selection-end-column="4" />
               <folding>
                 <element signature="e#44#77#0" expanded="true" />
               </folding>
@@ -63,11 +63,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="380">
-              <caret line="211" column="61" selection-start-line="211" selection-start-column="61" selection-end-line="211" selection-end-column="61" />
+            <state relative-caret-position="267">
+              <caret line="189" column="8" selection-start-line="189" selection-start-column="8" selection-end-line="189" selection-end-column="61" />
               <folding>
                 <element signature="e#44#74#0" expanded="true" />
               </folding>
@@ -86,8 +86,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>arg = new</find>
-      <find>GET_ROUTERS</find>
       <find>do_router</find>
       <find>wait_and_send</find>
       <find>router.</find>
@@ -112,10 +110,12 @@
       <find>sendto</find>
       <find>set_host_addr</find>
       <find>Set host</find>
-      <find>HANDSHAKE</find>
       <find>Reply</find>
       <find>HANDSHAKE_REQUEST</find>
       <find>sockaddr_in</find>
+      <find>HANDSHAKE</find>
+      <find>Oemel</find>
+      <find>HANDSHAKE_</find>
     </findStrings>
     <replaceStrings>
       <replace>omelet</replace>
@@ -157,8 +157,8 @@
         <option value="$PROJECT_DIR$/src/base/linux/global.h" />
         <option value="$PROJECT_DIR$/src/base/linux/router.h" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/src/client/linux/main.cpp" />
         <option value="$PROJECT_DIR$/src/server/main.cpp" />
+        <option value="$PROJECT_DIR$/src/client/linux/main.cpp" />
       </list>
     </option>
   </component>
@@ -310,12 +310,12 @@
       <workItem from="1563681975988" duration="31392000" />
       <workItem from="1563768020410" duration="21962000" />
       <workItem from="1563880018954" duration="16349000" />
-      <workItem from="1563897466732" duration="3052000" />
+      <workItem from="1563897466732" duration="3452000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="149849000" />
+    <option name="totallyTimeSpent" value="150249000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -341,7 +341,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32939914" />
       <window_info anchor="bottom" id="Database Changes" order="7" />
-      <window_info active="true" anchor="bottom" id="Messages" order="8" visible="true" weight="0.35407725" />
+      <window_info anchor="bottom" id="Messages" order="8" weight="0.35407725" />
       <window_info anchor="bottom" id="Terminal" order="9" weight="0.38948497" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="11" />
@@ -595,22 +595,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/client/linux/main.cpp">
+    <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="481">
-          <caret line="797" column="33" selection-start-line="797" selection-start-column="33" selection-end-line="797" selection-end-column="33" />
+        <state relative-caret-position="267">
+          <caret line="189" column="8" selection-start-line="189" selection-start-column="8" selection-end-line="189" selection-end-column="61" />
           <folding>
-            <element signature="e#44#77#0" expanded="true" />
+            <element signature="e#44#74#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
+    <entry file="file://$PROJECT_DIR$/src/client/linux/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="380">
-          <caret line="211" column="61" selection-start-line="211" selection-start-column="61" selection-end-line="211" selection-end-column="61" />
+        <state relative-caret-position="213">
+          <caret line="845" column="4" selection-start-line="845" selection-start-column="4" selection-end-line="845" selection-end-column="4" />
           <folding>
-            <element signature="e#44#74#0" expanded="true" />
+            <element signature="e#44#77#0" expanded="true" />
           </folding>
         </state>
       </provider>
