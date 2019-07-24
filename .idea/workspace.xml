@@ -14,10 +14,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94c9e078-2cb7-491a-a96a-08ff64ae6d12" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/base/linux/global.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/base/linux/global.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/base/linux/router.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/base/linux/router.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/linux/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/linux/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/main.cpp" afterDir="false" />
     </list>
@@ -33,12 +29,12 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
-    <leaf>
-      <file pinned="false" current-in-tab="true">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/client/linux/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="352">
-              <caret line="196" column="10" selection-start-line="196" selection-start-column="10" selection-end-line="196" selection-end-column="10" />
+            <state relative-caret-position="481">
+              <caret line="797" column="33" selection-start-line="797" selection-start-column="33" selection-end-line="797" selection-end-column="33" />
               <folding>
                 <element signature="e#44#77#0" expanded="true" />
               </folding>
@@ -49,22 +45,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/base/linux/router.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-108">
-              <caret line="59" column="23" selection-start-line="59" selection-start-column="23" selection-end-line="59" selection-end-column="23" />
+            <state>
+              <caret line="58" lean-forward="true" selection-start-line="58" selection-end-line="58" />
               <folding>
                 <element signature="e#93#112#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/base/linux/global.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-640">
-              <caret line="59" column="49" selection-start-line="59" selection-start-column="49" selection-end-line="59" selection-end-column="52" />
-              <folding>
-                <element signature="e#111#129#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -79,11 +63,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="294">
-              <caret line="337" column="41" selection-start-line="337" selection-start-column="41" selection-end-line="337" selection-end-column="41" />
+            <state relative-caret-position="380">
+              <caret line="211" column="61" selection-start-line="211" selection-start-column="61" selection-end-line="211" selection-end-column="61" />
               <folding>
                 <element signature="e#44#74#0" expanded="true" />
               </folding>
@@ -102,12 +86,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>After encrypt</find>
-      <find>After</find>
-      <find>after</find>
-      <find>VERIFICATION</find>
-      <find>memcpy(</find>
-      <find>while (true)</find>
       <find>arg = new</find>
       <find>GET_ROUTERS</find>
       <find>do_router</find>
@@ -128,10 +106,16 @@
       <find>0x</find>
       <find>write</find>
       <find>read</find>
-      <find>set_host_addr</find>
-      <find>Set host</find>
       <find>printf</find>
       <find>for_</find>
+      <find>packet_source</find>
+      <find>sendto</find>
+      <find>set_host_addr</find>
+      <find>Set host</find>
+      <find>HANDSHAKE</find>
+      <find>Reply</find>
+      <find>HANDSHAKE_REQUEST</find>
+      <find>sockaddr_in</find>
     </findStrings>
     <replaceStrings>
       <replace>omelet</replace>
@@ -173,8 +157,8 @@
         <option value="$PROJECT_DIR$/src/base/linux/global.h" />
         <option value="$PROJECT_DIR$/src/base/linux/router.h" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/src/server/main.cpp" />
         <option value="$PROJECT_DIR$/src/client/linux/main.cpp" />
+        <option value="$PROJECT_DIR$/src/server/main.cpp" />
       </list>
     </option>
   </component>
@@ -326,11 +310,12 @@
       <workItem from="1563681975988" duration="31392000" />
       <workItem from="1563768020410" duration="21962000" />
       <workItem from="1563880018954" duration="16349000" />
+      <workItem from="1563897466732" duration="3052000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="146797000" />
+    <option name="totallyTimeSpent" value="149849000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -356,7 +341,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32939914" />
       <window_info anchor="bottom" id="Database Changes" order="7" />
-      <window_info anchor="bottom" id="Messages" order="8" weight="0.35407725" />
+      <window_info active="true" anchor="bottom" id="Messages" order="8" visible="true" weight="0.35407725" />
       <window_info anchor="bottom" id="Terminal" order="9" weight="0.38948497" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="11" />
@@ -576,13 +561,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/base/linux/router.h">
+    <entry file="file:///usr/include/unistd.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-108">
-          <caret line="59" column="23" selection-start-line="59" selection-start-column="23" selection-end-line="59" selection-end-column="23" />
-          <folding>
-            <element signature="e#93#112#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="191">
+          <caret line="365" column="15" selection-start-line="365" selection-start-column="15" selection-end-line="365" selection-end-column="15" />
         </state>
       </provider>
     </entry>
@@ -593,39 +575,42 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/unistd.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="191">
-          <caret line="365" column="15" selection-start-line="365" selection-start-column="15" selection-end-line="365" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/base/linux/global.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-640">
-          <caret line="59" column="49" selection-start-line="59" selection-start-column="49" selection-end-line="59" selection-end-column="52" />
+        <state relative-caret-position="205">
+          <caret line="113" column="7" selection-start-line="113" selection-start-column="7" selection-end-line="113" selection-end-column="7" />
           <folding>
             <element signature="e#111#129#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
+    <entry file="file://$PROJECT_DIR$/src/base/linux/router.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="294">
-          <caret line="337" column="41" selection-start-line="337" selection-start-column="41" selection-end-line="337" selection-end-column="41" />
+        <state>
+          <caret line="58" lean-forward="true" selection-start-line="58" selection-end-line="58" />
           <folding>
-            <element signature="e#44#74#0" expanded="true" />
+            <element signature="e#93#112#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/client/linux/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="352">
-          <caret line="196" column="10" selection-start-line="196" selection-start-column="10" selection-end-line="196" selection-end-column="10" />
+        <state relative-caret-position="481">
+          <caret line="797" column="33" selection-start-line="797" selection-start-column="33" selection-end-line="797" selection-end-column="33" />
           <folding>
             <element signature="e#44#77#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="380">
+          <caret line="211" column="61" selection-start-line="211" selection-start-column="61" selection-end-line="211" selection-end-column="61" />
+          <folding>
+            <element signature="e#44#74#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -37,6 +37,10 @@ void do_leave(int signum) {
   addr.sin_addr.s_addr = server_address_n;
   socklen_t addr_len = sizeof(sockaddr_in);
 
+  logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                        << int(header.packet_source) << ", packet_type = "
+                        << int(header.packet_type) << "]";
+
   sendto(sockfd, dbuf, kAesBlockSize, 0, (sockaddr *)&addr, addr_len);
   close(sockfd);
 
@@ -116,7 +120,7 @@ int set_host_addr(const char *dev, int virtual_ip) {
     return -1;
   }
 
-  logc(LogLevel::Debug) << "Set host addr: " << virtual_ip;
+  logc(LogLevel::Debug) << "Set host addr: " << inet_ntoa(addr.sin_addr);
 
   if (ioctl(sockfd, SIOCSIFADDR, (void *)&ifr) < 0) {
     perror("ioctl SIOCSIFADDR");
@@ -163,6 +167,10 @@ void *do_heartbeat(void *) {
   socklen_t addr_len = sizeof(sockaddr_in);
 
   while (true) {
+    logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                          << int(header.packet_source) << ", packet_type = "
+                          << int(header.packet_type) << "]";
+
     sendto(sockfd, dbuf, kAesBlockSize, 0, (sockaddr *)&addr, addr_len);
     sleep(5);
   }
@@ -240,6 +248,11 @@ void *resolve_packet_from_server(void *p) {
                                sizeof(arg->first->header), local_virtual_ip_n);
         aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
                     arg->first->header.length, aes_key, sendout);
+
+        logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                              << int(arg->first->header.packet_source) << ", packet_type = "
+                              << int(arg->first->header.packet_type) << "]";
+
         sendto(sockfd, sendout,
                (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
                    kAesBlockSize,
@@ -268,6 +281,11 @@ void *resolve_packet_from_server(void *p) {
                                sizeof(arg->first->header), local_virtual_ip_n);
         aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
                     arg->first->header.length, aes_key, sendout);
+
+        logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                              << int(arg->first->header.packet_source) << ", packet_type = "
+                              << int(arg->first->header.packet_type) << "]";
+
         sendto(sockfd, sendout,
                (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
                    kAesBlockSize,
@@ -285,11 +303,12 @@ void *resolve_packet_from_server(void *p) {
     switch (type) {
       // 收到握手请求则立即进行握手操作，不考虑丢包问题
       case PACKET_TYPE_HANDSHAKE_REQUEST: {
-        logc(LogLevel::Info) << "Received HANDSHAKE request from server";
-
         Peer dest;
         memcpy(&dest, arg->first->data,
                arg->first->header.length - sizeof(arg->first->header.length));
+
+        logc(LogLevel::Info) << "Received HANDSHAKE request to client " << int(arg->first->data[0]) << "."
+          << int(arg->first->data[1]) << "." << int(arg->first->data[2]) << "." << int(arg->first->data[3]) << ":" << ntohs(dest.port_n);
 
         sockaddr_in dest_addr{};
         dest_addr.sin_family = PF_INET;
@@ -303,6 +322,11 @@ void *resolve_packet_from_server(void *p) {
                                sizeof(arg->first->header), local_virtual_ip_n);
         aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
                     arg->first->header.length, aes_key, sendout);
+
+        logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                              << int(arg->first->header.packet_source) << ", packet_type = "
+                              << int(arg->first->header.packet_type) << "]";
+
         sendto(sockfd, sendout,
                (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
                    kAesBlockSize,
@@ -380,6 +404,10 @@ void *wait_and_send(void *p) {
       peer_addr.sin_addr.s_addr = res->ip;
       socklen_t peer_addr_len = sizeof(sockaddr_in);
 
+      logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                            << int(arg->first->header.packet_source) << ", packet_type = "
+                            << int(arg->first->header.packet_type) << "]";
+
       sendto(sockfd, sendout,
              ceil(arg->first->header.length / (double)kAesBlockSize) *
                  kAesBlockSize,
@@ -440,7 +468,7 @@ int do_verification() {
   aes_encrypt(reinterpret_cast<const uint8_t *>(&header), sizeof header,
               aes_key, dbuf);
 
-  logc(LogLevel::Debug) << "Send packet: [ packet_source = "
+  logc(LogLevel::Debug) << "send packet: [ packet_source = "
                         << int(header.packet_source) << ", packet_type = "
                         << int(header.packet_type) << "]";
 
@@ -764,8 +792,18 @@ int main(int argc, char *argv[]) {
     buf.header.set(packet_id.add(), PACKET_SERVER,
                    PACKET_TYPE_HANDSHAKE_REQUEST | PACKET_NO_REPLY,
                    sizeof(buf.header) + 4, local_virtual_ip_n);
+    buf.buffer[0] = buf.buffer[16];
+    buf.buffer[1] = buf.buffer[17];
+    buf.buffer[2] = buf.buffer[18];
+    buf.buffer[3] = buf.buffer[19];
+
+
     aes_encrypt(reinterpret_cast<const uint8_t *>(&buf), buf.header.length,
                 aes_key, dbuf);
+
+    logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                          << int(buf.header.packet_source) << ", packet_type = "
+                          << int(buf.header.packet_type) << "]";
 
     sendto(sockfd, dbuf,
            ceil(buf.header.length / (double)kAesBlockSize) * kAesBlockSize, 0,
@@ -814,6 +852,10 @@ int main(int argc, char *argv[]) {
     peer_addr.sin_port = res->port;
     peer_addr.sin_addr.s_addr = res->ip;
     socklen_t peer_addr_len = sizeof(sockaddr_in);
+
+    logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                          << int(buf.header.packet_source) << ", packet_type = "
+                          << int(buf.header.packet_type) << "]";
 
     sendto(sockfd, dbuf,
            ceil(buf.header.length / (double)kAesBlockSize) * kAesBlockSize, 0,

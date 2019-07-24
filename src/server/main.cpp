@@ -196,6 +196,12 @@ void *resolve_packet(void *p) {
 
         // 请求转发时为物理 IP + 端口
         Peer res = al.query(dest_ip_n.i);
+
+        sockaddr_in peer_addr{};
+        peer_addr.sin_family = PF_INET;
+        peer_addr.sin_port = res.port_n;
+        peer_addr.sin_addr.s_addr = res.ip_n;
+
         memcpy(arg->first->data, &res, sizeof res);
 
         aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
@@ -203,7 +209,7 @@ void *resolve_packet(void *p) {
         sendto(sockfd, sendout,
                (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
                    kAesBlockSize,
-               0, (sockaddr *)&(arg->second), addr_len);
+               0, (sockaddr *)&(peer_addr), sizeof peer_addr);
 
         delete arg->first;
         delete arg;
@@ -320,12 +326,6 @@ int main(int argc, char *argv[]) {
     if (!al.exist(arg->first->header.virtual_ip_n) &&
         al.size() > kMaxConnections) {
       // TODO: 返回包
-      continue;
-    }
-
-    // 如果不是第一次发包，是 VERIFICATION 请求则舍弃
-    if (al.exist(arg->first->header.virtual_ip_n) &&
-        arg->first->header.packet_type == PACKET_TYPE_VERIFICATION) {
       continue;
     }
 
