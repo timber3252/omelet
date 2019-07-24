@@ -187,7 +187,8 @@ void *resolve_packet(void *p) {
         } dest_ip_n;
         memcpy(dest_ip_n.s, arg->first->data, 4);  // 第一次请求为虚拟 IP
 
-        Peer res = al.query(arg->first->header.virtual_ip_n);
+        Peer source_peer = al.query(arg->first->header.virtual_ip_n);
+        Peer dest_peer = al.query(dest_ip_n.i);
 
         logc(LogLevel::Info)
             << "Received HANDSHAKE request from client "
@@ -198,10 +199,10 @@ void *resolve_packet(void *p) {
 
         sockaddr_in peer_addr{};
         peer_addr.sin_family = PF_INET;
-        peer_addr.sin_port = res.port_n;
-        peer_addr.sin_addr.s_addr = res.ip_n;
+        peer_addr.sin_port = dest_peer.port_n;
+        peer_addr.sin_addr.s_addr = dest_peer.ip_n;
 
-        memcpy(arg->first->data, &res, sizeof res);
+        memcpy(arg->first->data, &source_peer, sizeof source_peer);
 
         aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
                     arg->first->header.length, aes_key, sendout);

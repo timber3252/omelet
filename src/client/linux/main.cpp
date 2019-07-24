@@ -210,6 +210,11 @@ void *resolve_packet_from_peer(void *p) {
         // TODO: 封装统一的发送，接收函数
         break;
       }
+
+      case PACKET_TYPE_HANDSHAKE: {
+        logc(LogLevel::Debug) << "Received HANDSHAKE packet from peer " << arg->first->header.virtual_ip_n;
+        break;
+      }
     }
   }
 
@@ -392,6 +397,7 @@ void *wait_and_send(void *p) {
   uint8_t type = arg->first->header.packet_type;
   socklen_t addr_len = sizeof(sockaddr_in);
   auto *sendout = new uint8_t[kALBufferSize];
+  auto *dbuf = new uint8_t[kAesBlockSize];
   aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
               arg->first->header.length, ::aes_key, sendout);
 
@@ -403,6 +409,19 @@ void *wait_and_send(void *p) {
       peer_addr.sin_port = res->port;
       peer_addr.sin_addr.s_addr = res->ip;
       socklen_t peer_addr_len = sizeof(sockaddr_in);
+
+      arg->first->header.set(packet_id.add(), PACKET_PEERS,
+                     PACKET_TYPE_HANDSHAKE | PACKET_NO_REPLY, sizeof(OmeletProtoHeader), local_virtual_ip_n);
+      aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first), arg->first->header.length,
+                  aes_key, dbuf);
+
+      logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                            << int(arg->first->header.packet_source) << ", packet_type = "
+                            << int(arg->first->header.packet_type) << "] to " << inet_ntoa(peer_addr.sin_addr) << ":" << ntohs(peer_addr.sin_port);
+
+      sendto(sockfd, dbuf,
+             kAesBlockSize, 0,
+             (sockaddr *)&peer_addr, peer_addr_len);
 
       logc(LogLevel::Debug) << "send packet: [ packet_source = "
                             << int(arg->first->header.packet_source) << ", packet_type = "
@@ -840,15 +859,19 @@ int main(int argc, char *argv[]) {
     }
 
     buf.header.set(packet_id.add(), PACKET_PEERS,
-        PACKET_TYPE_HANDSHAKE | PACKET_NO_REPLY, sizeof(OmeletProtoHeader), local_virtual_ip_n);
+                   PACKET_TYPE_HANDSHAKE | PACKET_NO_REPLY, sizeof(OmeletProtoHeader), local_virtual_ip_n);
     aes_encrypt(reinterpret_cast<const uint8_t *>(&buf), buf.header.length,
                 aes_key, dbuf);
-    
+
     sockaddr_in peer_addr{};
     peer_addr.sin_family = PF_INET;
     peer_addr.sin_port = res->port;
     peer_addr.sin_addr.s_addr = res->ip;
     socklen_t peer_addr_len = sizeof(sockaddr_in);
+
+    logc(LogLevel::Debug) << "send packet: [ packet_source = "
+                          << int(buf.header.packet_source) << ", packet_type = "
+                          << int(buf.header.packet_type) << "] to " << inet_ntoa(peer_addr.sin_addr) << ":" << ntohs(peer_addr.sin_port);
 
     sendto(sockfd, dbuf,
            ceil(buf.header.length / (double)kAesBlockSize) * kAesBlockSize, 0,
