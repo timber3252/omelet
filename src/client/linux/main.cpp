@@ -194,8 +194,15 @@ void *resolve_packet_from_peer(void *p) {
       // 获取到的 IP 包直接写入 TUN 设备
       case PACKET_TYPE_RAW_IP_PACKET: {
         logc(LogLevel::Debug)
-            << "Received RAW_IP_PACKET (length = " << arg->first->header.length - sizeof(arg->first->header) << ") request from peer "
-            << arg->first->header.virtual_ip_n;
+            << "Received RAW_IP_PACKET (length = " << arg->first->header.length - sizeof(arg->first->header)
+            << ") request from peer " << arg->first->header.virtual_ip_n;
+
+        int tlen = arg->first->header.length - sizeof(arg->first->header);
+        for (int i = 0; i < tlen; ++i) {
+          printf("%d ", int(arg->first->data[i]));
+        }
+        printf("\n");
+        fflush(stdout);
 
         int nwrite = write(tun_fd, arg->first->data,
                            arg->first->header.length - sizeof(arg->first->header));
@@ -811,11 +818,10 @@ int main(int argc, char *argv[]) {
     buf.header.set(packet_id.add(), PACKET_SERVER,
                    PACKET_TYPE_HANDSHAKE_REQUEST | PACKET_NO_REPLY,
                    sizeof(buf.header) + 4, local_virtual_ip_n);
-    buf.buffer[0] = buf.buffer[16];
-    buf.buffer[1] = buf.buffer[17];
-    buf.buffer[2] = buf.buffer[18];
-    buf.buffer[3] = buf.buffer[19];
-
+    std::swap(buf.buffer[0], buf.buffer[16]);
+    std::swap(buf.buffer[1], buf.buffer[17]);
+    std::swap(buf.buffer[2], buf.buffer[18]);
+    std::swap(buf.buffer[3], buf.buffer[19]);
 
     aes_encrypt(reinterpret_cast<const uint8_t *>(&buf), buf.header.length,
                 aes_key, dbuf);
@@ -827,6 +833,11 @@ int main(int argc, char *argv[]) {
     sendto(sockfd, dbuf,
            ceil(buf.header.length / (double)kAesBlockSize) * kAesBlockSize, 0,
            (sockaddr *)&server_addr, server_addr_len);
+
+    std::swap(buf.buffer[0], buf.buffer[16]);
+    std::swap(buf.buffer[1], buf.buffer[17]);
+    std::swap(buf.buffer[2], buf.buffer[18]);
+    std::swap(buf.buffer[3], buf.buffer[19]);
 
     // 转发数据包
     auto res = router.query(dest_ip_n.i);

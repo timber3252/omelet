@@ -190,6 +190,9 @@ void *resolve_packet(void *p) {
         Peer source_peer = al.query(arg->first->header.virtual_ip_n);
         Peer dest_peer = al.query(dest_ip_n.i);
 
+        if (dest_peer.ip_n == 0 || dest_peer.port_n == 0)
+          break;
+
         logc(LogLevel::Info)
             << "Received HANDSHAKE request from client "
             << arg->first->header.virtual_ip_n << " to client " << dest_ip_n.i;

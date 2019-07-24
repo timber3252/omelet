@@ -30,7 +30,32 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="214">
+              <caret line="207" column="67" lean-forward="true" selection-start-line="207" selection-start-column="67" selection-end-line="207" selection-end-column="67" />
+              <folding>
+                <element signature="e#44#74#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/client/linux/main.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="604">
+              <caret line="839" column="45" selection-start-line="839" selection-start-column="45" selection-end-line="839" selection-end-column="45" />
+              <folding>
+                <element signature="e#44#77#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -41,10 +66,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>OmeletProtoHeader</find>
-      <find>nwrite</find>
-      <find>Received</find>
-      <find>RAW_IP</find>
       <find>RAW</find>
       <find>Raw</find>
       <find>tun_alloc</find>
@@ -53,7 +74,6 @@
       <find>fuck you</find>
       <find>Fuck</find>
       <find>0x</find>
-      <find>write</find>
       <find>read</find>
       <find>printf</find>
       <find>for_</find>
@@ -71,6 +91,11 @@
       <find>HAND</find>
       <find>HANDSHAKE_REQUEST</find>
       <find>HANDSHAKE</find>
+      <find>Peer =</find>
+      <find>memcpy</find>
+      <find>RAW_IP_PACKET</find>
+      <find>write</find>
+      <find>memcpy(</find>
     </findStrings>
     <replaceStrings>
       <replace>omelet</replace>
@@ -111,8 +136,8 @@
         <option value="$PROJECT_DIR$/src/base/linux/thread_safe.h" />
         <option value="$PROJECT_DIR$/src/base/linux/router.h" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/src/server/main.cpp" />
         <option value="$PROJECT_DIR$/src/base/linux/global.h" />
+        <option value="$PROJECT_DIR$/src/server/main.cpp" />
         <option value="$PROJECT_DIR$/src/client/linux/main.cpp" />
       </list>
     </option>
@@ -132,7 +157,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -191,6 +215,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -267,11 +292,13 @@
       <workItem from="1563880018954" duration="16349000" />
       <workItem from="1563897466732" duration="5707000" />
       <workItem from="1563934213300" duration="4405000" />
+      <workItem from="1563939919115" duration="1842000" />
+      <workItem from="1563959453724" duration="2803000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="156909000" />
+    <option name="totallyTimeSpent" value="161554000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -284,6 +311,7 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="48" y="48" width="1872" height="1032" extended-state="0" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.32454127" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -498,13 +526,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/base/linux/thread_safe.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="191">
-          <caret line="14" column="2" selection-start-line="14" selection-start-column="2" selection-end-line="14" selection-end-column="2" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/include/unistd.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="191">
@@ -539,10 +560,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/base/linux/thread_safe.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="364">
+          <caret line="80" column="17" lean-forward="true" selection-start-line="80" selection-start-column="17" selection-end-line="80" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="173">
-          <caret line="204" column="67" selection-start-line="204" selection-start-column="67" selection-end-line="204" selection-end-column="67" />
+        <state relative-caret-position="214">
+          <caret line="207" column="67" lean-forward="true" selection-start-line="207" selection-start-column="67" selection-end-line="207" selection-end-column="67" />
           <folding>
             <element signature="e#44#74#0" expanded="true" />
           </folding>
@@ -551,8 +579,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/client/linux/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="26">
-          <caret line="213" column="35" lean-forward="true" selection-start-line="213" selection-start-column="6" selection-end-line="213" selection-end-column="35" />
+        <state relative-caret-position="604">
+          <caret line="839" column="45" selection-start-line="839" selection-start-column="45" selection-end-line="839" selection-end-column="45" />
           <folding>
             <element signature="e#44#77#0" expanded="true" />
           </folding>
