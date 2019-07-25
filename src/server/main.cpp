@@ -16,11 +16,36 @@ Allocator al;
 Counter packet_id;
 Set reliable_packets;
 
+void omelet_send(int fd, const void *buf, size_t size, int flags,
+                 const sockaddr_in *addr, socklen_t addr_len,
+                 OmeletProtoHeader &header, bool reliable) {
+  if (reliable) {
+    logc(LogLevel::Info) << "try to send reliable packet ["
+                         << int(header.packet_id) << ", "
+                         << int(header.packet_source) << ", "
+                         << int(header.packet_type) << ", "
+                         << int(header.length) << "] to "
+                         << int(header.virtual_ip_n) << " {aka "
+                         << inet_ntoa(addr->sin_addr) << ":"
+                         << ntohs(addr->sin_port) << "}";
+  } else {
+    logc(LogLevel::Info) << "sent packet [" << int(header.packet_id) << ", "
+                         << int(header.packet_source) << ", "
+                         << int(header.packet_type) << ", "
+                         << int(header.length) << "] to "
+                         << int(header.virtual_ip_n) << " {aka "
+                         << inet_ntoa(addr->sin_addr) << ":"
+                         << ntohs(addr->sin_port) << "}";
+  }
+  sendto(fd, buf, size, flags, reinterpret_cast<const sockaddr *>(addr),
+         addr_len);
+}
+
 void init_socket() {
   sockfd = socket(PF_INET, SOCK_DGRAM, 0);
 
   if (sockfd < 0) {
-    logc(LogLevel::Fatal) << "Failed to create socket object (errno = " << errno
+    logc(LogLevel::Fatal) << "failed to create socket object (errno = " << errno
                           << ")";
     exit(-1);
   }
@@ -31,12 +56,12 @@ void init_socket() {
   addr.sin_addr.s_addr = local_address_n;
 
   if (bind(sockfd, (sockaddr *)&addr, sizeof addr) == -1) {
-    logc(LogLevel::Fatal) << "Failed to bind ip address (errno = " << errno
+    logc(LogLevel::Fatal) << "failed to bind ip address (errno = " << errno
                           << ")";
     exit(-1);
   }
 
-  logc(LogLevel::Info) << "Server was started on " << inet_ntoa(addr.sin_addr)
+  logc(LogLevel::Info) << "server was started on " << inet_ntoa(addr.sin_addr)
                        << ':' << ntohs(addr.sin_port);
 }
 
@@ -48,13 +73,11 @@ void *reliable_send(void *p) {
 
   aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
               arg->first->header.length, aes_key, sendout);
-  if (sendto(sockfd, sendout,
-         (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
-             kAesBlockSize,
-         0, (sockaddr *)&(arg->second), addr_len) < 0) {
-    perror("sendto");
-    // TODO
-  };
+
+  omelet_send(sockfd, sendout,
+              (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
+                  kAesBlockSize,
+              0, &(arg->second), addr_len, arg->first->header, true);
 
   int usecs = 500000;
   for (int i = 0; i < 6; ++i) {
@@ -63,19 +86,27 @@ void *reliable_send(void *p) {
 
     if (!reliable_packets.exist(arg->first->header.packet_id)) {
       if (arg->first->header.packet_type == PACKET_TYPE_VERIFICATION) {
-        logc(LogLevel::Info) << "Client " << arg->first->header.virtual_ip_n
+        logc(LogLevel::Info) << "client " << arg->first->header.virtual_ip_n
+                             << " {aka " << inet_ntoa(arg->second.sin_addr)
+                             << ":" << ntohs(arg->second.sin_port) << "}"
                              << " has connected to the server";
       }
-      logc(LogLevel::Info) << "Reliable packet " << arg->first->header.packet_id
-                           << " was received by the client "
-                           << arg->first->header.virtual_ip_n;
+      auto header = arg->first->header;
+      logc(LogLevel::Info) << "sent reliable packet [" << int(header.packet_id)
+                           << ", " << int(header.packet_source) << ", "
+                           << int(header.packet_type) << ", "
+                           << int(header.length) << "] to "
+                           << int(header.virtual_ip_n) << " {aka "
+                           << inet_ntoa(arg->second.sin_addr) << ":"
+                           << ntohs(arg->second.sin_port) << "}";
       break;
     }
 
-    sendto(sockfd, sendout,
-           (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
-               kAesBlockSize,
-           0, (sockaddr *)&(arg->second), addr_len);
+    omelet_send(
+        sockfd, sendout,
+        (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
+            kAesBlockSize,
+        0, &(arg->second), addr_len, arg->first->header, true);
   }
 
   reliable_packets.remove(arg->first->header.packet_id);
@@ -96,22 +127,16 @@ void *resolve_packet(void *p) {
     type &= PACKET_UNIQUE_OPERATION;
 
     switch (type) {
-      // 对于心跳包可以回复，但对方收不到也没有问题，同时起着保持 NAT 不变的作用
+      // 对于心跳包回复 ACK，同时起着保持 NAT 不变的作用
       case PACKET_TYPE_HEARTBEAT: {
-        logc(LogLevel::Info)
-            << "Received HEARTBEAT request from client "
-            << arg->first->header.virtual_ip_n;
-
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
                                PACKET_TYPE_HEARTBEAT | PACKET_NO_REPLY,
                                sizeof(arg->first->header), 0);
 
         aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
                     arg->first->header.length, aes_key, sendout);
-        sendto(sockfd, sendout,
-               (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
-                   kAesBlockSize,
-               0, (sockaddr *)&(arg->second), addr_len);
+        omelet_send(sockfd, sendout, kAesBlockSize, 0, &(arg->second), addr_len,
+                    arg->first->header, false);
         delete arg->first;
         delete arg;
         delete[] sendout;
@@ -120,10 +145,6 @@ void *resolve_packet(void *p) {
 
       // 获取客户端路由表操作，需要注意阻塞问题和多次发包问题（因为数据量相对较大
       case PACKET_TYPE_GET_ROUTERS: {
-        logc(LogLevel::Info)
-            << "Received GET_ROUTERS request from client "
-            << arg->first->header.virtual_ip_n;
-
         int ncnt = al.query_all(arg->first->data,
                                 kALBufferSize - sizeof(arg->first->header));
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
@@ -147,10 +168,6 @@ void *resolve_packet(void *p) {
 
         virtual_ip_n.i = arg->first->header.virtual_ip_n;
 
-        logc(LogLevel::Info)
-            << "Received VERIFICATION request from client "
-            << arg->first->header.virtual_ip_n;
-
         memcpy(arg->first->data, virtual_ip_n.s, sizeof virtual_ip_n.s);
 
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
@@ -169,7 +186,9 @@ void *resolve_packet(void *p) {
       // 客户端主动退出服务器，是显式的退出，但并非严格（部分客户端可能已经无效，但仍然不认为是退出了服务器）
       case PACKET_TYPE_LEAVE: {
         al.remove(arg->first->header.virtual_ip_n);
-        logc(LogLevel::Info) << "Client " << arg->first->header.virtual_ip_n
+        logc(LogLevel::Info) << "client " << arg->first->header.virtual_ip_n
+                             << " {aka " << inet_ntoa(arg->second.sin_addr)
+                             << ":" << ntohs(arg->second.sin_port) << "}"
                              << " was explicitly leaved";
         delete arg->first;
         delete arg;
@@ -190,12 +209,8 @@ void *resolve_packet(void *p) {
         Peer source_peer = al.query(arg->first->header.virtual_ip_n);
         Peer dest_peer = al.query(dest_ip_n.i);
 
-        if (dest_peer.ip_n == 0 || dest_peer.port_n == 0)
-          break;
+        if (dest_peer.ip_n == 0 || dest_peer.port_n == 0) break;
 
-        logc(LogLevel::Info)
-            << "Received HANDSHAKE request from client "
-            << arg->first->header.virtual_ip_n << " to client " << dest_ip_n.i;
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
                                PACKET_TYPE_HANDSHAKE_REQUEST | PACKET_NO_REPLY,
                                sizeof(arg->first->header) + sizeof(Peer), 0);
@@ -209,10 +224,11 @@ void *resolve_packet(void *p) {
 
         aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
                     arg->first->header.length, aes_key, sendout);
-        sendto(sockfd, sendout,
-               (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
-                   kAesBlockSize,
-               0, (sockaddr *)&(peer_addr), sizeof peer_addr);
+        omelet_send(
+            sockfd, sendout,
+            (size_t)ceil(arg->first->header.length / (double)kAesBlockSize) *
+                kAesBlockSize,
+            0, &(peer_addr), sizeof peer_addr, arg->first->header, false);
 
         delete arg->first;
         delete arg;
@@ -316,10 +332,6 @@ int main(int argc, char *argv[]) {
     arg->first = new Packet<kALBufferSize>();
     memcpy(&(arg->first->header), dbuf, sizeof(arg->first->header));
 
-    logc(LogLevel::Debug) << "Received packet: [ packet_source = "
-                          << int(arg->first->header.packet_source) << ", packet_type = "
-                          << int(arg->first->header.packet_type) << "]";
-
     // 数据包对象必须是服务器，否则舍弃
     if (arg->first->header.packet_source != PACKET_SERVER) {
       continue;
@@ -336,13 +348,30 @@ int main(int argc, char *argv[]) {
     if (!al.exist(arg->first->header.virtual_ip_n)) {
       arg->first->header.virtual_ip_n = htonl(++now_h);
 
-      // TODO: REMOVE DEBUG
-      if (client_addr.sin_addr.s_addr == 0x0100007f)
-        client_addr.sin_addr.s_addr = 0x2d01a8c0;
+      al.insert(arg->first->header.virtual_ip_n,
+                Peer(client_addr.sin_addr.s_addr, client_addr.sin_port));
 
+      logc(LogLevel::Info) << "try binding " << arg->first->header.virtual_ip_n
+                           << " to " << inet_ntoa(client_addr.sin_addr) << ":"
+                           << ntohs(client_addr.sin_port);
+    }
+
+    auto header = arg->first->header;
+    auto res = al.query(arg->first->header.virtual_ip_n);
+    if (res.ip_n != arg->second.sin_addr.s_addr ||
+        res.port_n != arg->second.sin_port) {
+      al.remove(res.ip_n);
       al.insert(arg->first->header.virtual_ip_n,
                 Peer(client_addr.sin_addr.s_addr, client_addr.sin_port));
     }
+
+    logc(LogLevel::Info) << "received packet [" << int(header.packet_id) << ", "
+                         << int(header.packet_source) << ", "
+                         << int(header.packet_type) << ", "
+                         << int(header.length) << "] from "
+                         << arg->first->header.virtual_ip_n << " {aka "
+                         << inet_ntoa(client_addr.sin_addr) << ":"
+                         << ntohs(client_addr.sin_port) << "}";
 
     memcpy(arg->first->data, dbuf + sizeof(arg->first->header),
            arg->first->header.length - sizeof(arg->first->header));

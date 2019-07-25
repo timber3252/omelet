@@ -15,6 +15,7 @@
   <component name="ChangeListManager">
     <list default="true" id="94c9e078-2cb7-491a-a96a-08ff64ae6d12" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/linux/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/linux/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/server/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/main.cpp" afterDir="false" />
     </list>
@@ -31,23 +32,11 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="214">
-              <caret line="207" column="67" lean-forward="true" selection-start-line="207" selection-start-column="67" selection-end-line="207" selection-end-column="67" />
-              <folding>
-                <element signature="e#44#74#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/client/linux/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="604">
-              <caret line="839" column="45" selection-start-line="839" selection-start-column="45" selection-end-line="839" selection-end-column="45" />
+            <state relative-caret-position="445">
+              <caret line="878" column="1" lean-forward="true" selection-start-line="878" selection-start-column="1" selection-end-line="878" selection-end-column="1" />
               <folding>
                 <element signature="e#44#77#0" expanded="true" />
               </folding>
@@ -66,19 +55,12 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>RAW</find>
-      <find>Raw</find>
-      <find>tun_alloc</find>
-      <find>s</find>
-      <find>arg-&gt;first</find>
       <find>fuck you</find>
       <find>Fuck</find>
-      <find>0x</find>
       <find>read</find>
       <find>printf</find>
       <find>for_</find>
       <find>packet_source</find>
-      <find>sendto</find>
       <find>set_host_addr</find>
       <find>Set host</find>
       <find>Reply</find>
@@ -90,12 +72,19 @@
       <find>htons</find>
       <find>HAND</find>
       <find>HANDSHAKE_REQUEST</find>
-      <find>HANDSHAKE</find>
       <find>Peer =</find>
       <find>memcpy</find>
       <find>RAW_IP_PACKET</find>
       <find>write</find>
       <find>memcpy(</find>
+      <find>HANDSHAKE</find>
+      <find>omelet_send</find>
+      <find>logc(LogLevel::Debug)</find>
+      <find>recvfrom</find>
+      <find>0x</find>
+      <find>PACKET_HEART</find>
+      <find>HEARTBEAT</find>
+      <find>sendto</find>
     </findStrings>
     <replaceStrings>
       <replace>omelet</replace>
@@ -135,10 +124,10 @@
         <option value="$PROJECT_DIR$/src/base/linux/aes.h" />
         <option value="$PROJECT_DIR$/src/base/linux/thread_safe.h" />
         <option value="$PROJECT_DIR$/src/base/linux/router.h" />
-        <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/src/base/linux/global.h" />
-        <option value="$PROJECT_DIR$/src/server/main.cpp" />
         <option value="$PROJECT_DIR$/src/client/linux/main.cpp" />
+        <option value="$PROJECT_DIR$/src/server/main.cpp" />
+        <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
@@ -157,6 +146,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -215,7 +205,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -293,12 +282,12 @@
       <workItem from="1563897466732" duration="5707000" />
       <workItem from="1563934213300" duration="4405000" />
       <workItem from="1563939919115" duration="1842000" />
-      <workItem from="1563959453724" duration="2803000" />
+      <workItem from="1563959453724" duration="17623000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="161554000" />
+    <option name="totallyTimeSpent" value="176374000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -313,7 +302,7 @@
     <frame x="48" y="48" width="1872" height="1032" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.32454127" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14747807" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -324,7 +313,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32939914" />
       <window_info anchor="bottom" id="Database Changes" order="7" />
-      <window_info anchor="bottom" id="Messages" order="8" weight="0.31866953" />
+      <window_info anchor="bottom" id="Messages" order="8" visible="true" weight="0.31866953" />
       <window_info anchor="bottom" id="Terminal" order="9" weight="0.38948497" />
       <window_info anchor="bottom" id="Event Log" order="10" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="11" />
@@ -533,16 +522,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/base/linux/global.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="61" column="52" selection-start-line="61" selection-start-column="52" selection-end-line="61" selection-end-column="52" />
-          <folding>
-            <element signature="e#111#129#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/base/linux/router.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="23">
@@ -553,13 +532,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/README.md">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="15" column="57" selection-start-line="15" selection-start-column="57" selection-end-line="15" selection-end-column="57" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/base/linux/thread_safe.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="364">
@@ -567,10 +539,34 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/base/linux/global.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1341">
+          <caret line="61" column="52" selection-start-line="61" selection-start-column="52" selection-end-line="61" selection-end-column="52" />
+          <folding>
+            <element signature="e#111#129#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/9.1.0/chrono">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="301">
+          <caret line="190" column="6" selection-start-line="190" selection-start-column="6" selection-end-line="190" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="276">
+          <caret line="12" column="61" selection-start-line="12" selection-start-column="61" selection-end-line="12" selection-end-column="61" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/server/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="214">
-          <caret line="207" column="67" lean-forward="true" selection-start-line="207" selection-start-column="67" selection-end-line="207" selection-end-column="67" />
+        <state relative-caret-position="76">
+          <caret line="23" column="16" lean-forward="true" selection-start-line="23" selection-start-column="16" selection-end-line="23" selection-end-column="16" />
           <folding>
             <element signature="e#44#74#0" expanded="true" />
           </folding>
@@ -579,8 +575,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/client/linux/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="604">
-          <caret line="839" column="45" selection-start-line="839" selection-start-column="45" selection-end-line="839" selection-end-column="45" />
+        <state relative-caret-position="445">
+          <caret line="878" column="1" lean-forward="true" selection-start-line="878" selection-start-column="1" selection-end-line="878" selection-end-column="1" />
           <folding>
             <element signature="e#44#77#0" expanded="true" />
           </folding>

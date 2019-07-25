@@ -9,8 +9,5 @@ A cross-platform dynamic virtual network. Currently it is in the initial develop
 
 ## TODO
 
-- [ ] friendly prompt info
-- [ ] better efficiency and adjust code
 - [ ] support for windows
-- [ ] focus on multi-thread safety
-- [ ] log class should show which thread the info belongs
+- [ ] send by private address if clients were in the same LAN
