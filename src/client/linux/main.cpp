@@ -22,9 +22,12 @@ char tun_name[IFNAMSIZ];
 volatile bool need_verification, is_update_routers;
 std::chrono::system_clock::time_point last_heartbeat;
 
-void omelet_send(int fd, const void *buf, size_t size, int flags,
+inline void omelet_send(int fd, const void *buf, size_t size, int flags,
                  const sockaddr_in *addr, socklen_t addr_len,
                  OmeletProtoHeader &header) {
+  if (addr->sin_addr.s_addr == 0 || addr->sin_port == 0)
+    return;
+
   if (header.packet_source == PACKET_SERVER) {
     logc(LogLevel::Info) << "sent packet [" << int(header.packet_id) << ", "
                          << int(header.packet_source) << ", "
@@ -171,12 +174,7 @@ int set_host_addr(const char *dev, int virtual_ip) {
 // 心跳包的定时发送，由于本身无连接，丢包可以忽略
 void *do_heartbeat(void *) {
   OmeletProtoHeader header;
-  header.set(packet_id.add(), PACKET_SERVER,
-             PACKET_TYPE_HEARTBEAT | PACKET_NEED_REPLY, sizeof header,
-             local_virtual_ip_n);
   auto *dbuf = new uint8_t[kAesBlockSize];
-  aes_encrypt(reinterpret_cast<const uint8_t *>(&header), header.length,
-              aes_key, dbuf);
 
   sockaddr_in addr{};
   addr.sin_family = PF_INET;
@@ -186,6 +184,13 @@ void *do_heartbeat(void *) {
   socklen_t addr_len = sizeof(sockaddr_in);
 
   while (true) {
+    header.set(packet_id.add(), PACKET_SERVER,
+               PACKET_TYPE_HEARTBEAT | PACKET_NEED_REPLY, sizeof header,
+               local_virtual_ip_n);
+
+    aes_encrypt(reinterpret_cast<const uint8_t *>(&header), header.length,
+                aes_key, dbuf);
+
     omelet_send(sockfd, dbuf, kAesBlockSize, 0, &addr, addr_len, header);
     sleep(5);
   }
@@ -420,12 +425,11 @@ void *wait_and_send(void *p) {
       socklen_t peer_addr_len = sizeof(sockaddr_in);
 
       OmeletProtoHeader header;
-
       header.set(packet_id.add(), PACKET_PEERS,
                  PACKET_TYPE_HANDSHAKE | PACKET_NO_REPLY,
                  sizeof(OmeletProtoHeader), local_virtual_ip_n);
       aes_encrypt(reinterpret_cast<const uint8_t *>(&header),
-                  arg->first->header.length, aes_key, dbuf);
+                  header.length, aes_key, dbuf);
 
       omelet_send(sockfd, dbuf, kAesBlockSize, 0, &peer_addr, peer_addr_len,
                   header);

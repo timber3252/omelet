@@ -11,3 +11,5 @@ A cross-platform dynamic virtual network. Currently it is in the initial develop
 
 - [ ] support for windows
 - [ ] send by private address if clients were in the same LAN
+- [ ] limit router update speed ( >= 5s a time )
+- [ ] server close notification
