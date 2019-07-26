@@ -12,7 +12,7 @@ ConsoleLog logc;
 ipv4_address_t local_address_n, server_address_n, local_virtual_ip_n,
     local_application_request_ip_n;
 port_t local_port_n, server_port_n, local_application_request_port_n;
-sockfd_t sockfd;
+sockfd_t sockfd, local_service_sockfd;
 Counter packet_id;
 Router router;
 Set virtual_ips;
@@ -67,6 +67,7 @@ void do_leave(int signum) {
 
   omelet_send(sockfd, dbuf, kAesBlockSize, 0, &addr, addr_len, header);
   close(sockfd);
+  close(local_service_sockfd);
 
   logc(LogLevel::Info) << "client has leaved from the server";
 
@@ -529,13 +530,17 @@ void *local_service_sub(void *p) {
 
   while (true) {
     memset(sp->data, 0x00, sizeof sp->data);
-    int nrecv = recv(fd, &sp, kALBufferSize, 0);
+    int nrecv = recv(fd, sp, kALBufferSize, 0);
 
     if (nrecv <= 0 || sp->header.packet_source != PACKET_APPLICATIONS) {
       logc(LogLevel::Info) << "application " << fd << " has disconnected";
 
       close(fd);
       pthread_exit(nullptr);
+    }
+
+    for (int i = 0; i < nrecv; ++i) {
+      printf("%d ", int(sp->data[i]));
     }
 
     int type = sp->header.packet_type;
@@ -575,8 +580,10 @@ void *local_service_sub(void *p) {
 
 void *local_service(void *) {
   // 本机监听，使用有连接 socket
-  int local_service_sockfd = socket(PF_INET, SOCK_STREAM, 0);
-  ;
+  local_service_sockfd = socket(PF_INET, SOCK_STREAM, 0);
+
+  int on = 1;
+  setsockopt(local_service_sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
   sockaddr_in local_application_request_addr{};
   local_application_request_addr.sin_family = PF_INET;

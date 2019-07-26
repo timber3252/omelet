@@ -131,7 +131,7 @@ void *resolve_packet(void *p) {
       case PACKET_TYPE_HEARTBEAT: {
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
                                PACKET_TYPE_HEARTBEAT | PACKET_NO_REPLY,
-                               sizeof(arg->first->header), 0);
+                               sizeof(arg->first->header), arg->first->header.virtual_ip_n);
 
         aes_encrypt(reinterpret_cast<const uint8_t *>(arg->first),
                     arg->first->header.length, aes_key, sendout);
@@ -149,7 +149,7 @@ void *resolve_packet(void *p) {
                                 kALBufferSize - sizeof(arg->first->header));
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
                                PACKET_TYPE_GET_ROUTERS | PACKET_NEED_REPLY,
-                               sizeof(arg->first->header) + ncnt, 0);
+                               sizeof(arg->first->header) + ncnt, arg->first->header.virtual_ip_n);
 
         reliable_packets.insert(
             arg->first->header
@@ -213,7 +213,7 @@ void *resolve_packet(void *p) {
 
         arg->first->header.set(packet_id.add(), PACKET_SERVER,
                                PACKET_TYPE_HANDSHAKE_REQUEST | PACKET_NO_REPLY,
-                               sizeof(arg->first->header) + sizeof(Peer), 0);
+                               sizeof(arg->first->header) + sizeof(Peer), arg->first->header.virtual_ip_n);
 
         sockaddr_in peer_addr{};
         peer_addr.sin_family = PF_INET;

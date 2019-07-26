@@ -49,7 +49,14 @@ ConsoleLog::LogStream::~LogStream() {
 }
 
 void ConsoleLog::write(const tm *tm, const char *level, const char *msg) {
+  bool err = !strcmp(level, "FATAL") || !strcmp(level, "ERROR");
+  if (err) {
+    std::cout << "\033[33m";
+  }
   std::cout << '[' << tm << ']' << '[' << level << ']' << '\t' << msg
             << std::endl;
+  if (err) {
+    std::cout << "\033[0m";
+  }
   std::cout.flush();
 }

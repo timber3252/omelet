@@ -57,6 +57,9 @@ class Router {
       return;
     }
 
+    clean(rt);
+    rt = new RouterNode();
+
     int ncnt = len / 10, cnt = 0;
     union {
       ipv4_address_t i;
