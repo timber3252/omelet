@@ -57,8 +57,7 @@ class Router {
       return;
     }
 
-    clean(rt);
-    rt = new RouterNode();
+    s.clear();
 
     int ncnt = len / 10, cnt = 0;
     union {

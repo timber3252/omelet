@@ -16,6 +16,7 @@ A cross-platform dynamic virtual network. Currently it is in the initial develop
 - [ ] limit router update speed ( >= 5s a time )
 - [ ] server close notification
 - [ ] null constructor that called by [] operation 
+- [ ] tcp frame sync
 
 ## API
 
@@ -41,12 +42,12 @@ struct SimplePacket {
 Request Packet (4 bytes)
   packet_source = PACKET_APPLICATIONS (0xd3)
   packet_type = PACKET_TYPE_LOCAL_GET_VIRTUAL_IP | PACKET_NEED_REPLY (0x89)
-  length = 4 (0x00 0x04)
+  length = 4 (0x04 0x00)
 
 Reply Packet (8 bytes)
   packet_source = PACKET_APPLICATIONS (0xd3)
   packet_type = PACKET_TYPE_LOCAL_GET_VIRTUAL_IP | PACKET_NO_REPLY (0x49)
-  length = 8 (0x00 0x08)
+  length = 8 (0x08 0x00)
   data = [0x7f, 0x00, 0x00, 0x01] (example: 127.0.0.1)
 ```
 
@@ -56,12 +57,12 @@ Reply Packet (8 bytes)
 Request Packet (4 bytes)
   packet_source = PACKET_APPLICATIONS (0xd3)
   packet_type = PACKET_TYPE_LOCAL_GET_ROUTERS | PACKET_NEED_REPLY (0x88)
-  length = 4 (0x00 0x04)
+  length = 4 (0x04 0x00)
 
 Reply Packet (4 + n * 4 bytes, n is the number of clients)
   packet_source = PACKET_APPLICATIONS (0xd3)
   packet_type = PACKET_TYPE_LOCAL_GET_ROUTERS | PACKET_NO_REPLY (0x48)
-  length = 12 (0x00 0x0c) (example: n = 2)
+  length = 12 (0x0c 0x00) (example: n = 2)
   data = [0x7f, 0x00, 0x00, 0x01, 0x7f, 0x00, 0x00, 0x01]
 ```
 

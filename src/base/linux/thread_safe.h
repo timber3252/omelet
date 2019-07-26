@@ -90,6 +90,12 @@ class Set {
  public:
   int size() const { return s.size(); }
 
+  void clear() {
+    mtx.lock();
+    s.clear();
+    mtx.unlock();
+  }
+
   void insert(int x) {
     mtx.lock();
     s.insert(x);

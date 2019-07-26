@@ -539,10 +539,6 @@ void *local_service_sub(void *p) {
       pthread_exit(nullptr);
     }
 
-    for (int i = 0; i < nrecv; ++i) {
-      printf("%d ", int(sp->data[i]));
-    }
-
     int type = sp->header.packet_type;
     if ((type & PACKET_NEED_REPLY) > 0) {
       type &= PACKET_UNIQUE_OPERATION;
@@ -553,6 +549,7 @@ void *local_service_sub(void *p) {
             pthread_create(&tid_21, nullptr, do_router_update, nullptr);
           }
           int nquery = virtual_ips.query_all(sp->data);
+          logc(LogLevel::Debug) << int(sp->header.length);
           sp->header.set(PACKET_APPLICATIONS,
                          PACKET_TYPE_LOCAL_GET_ROUTERS | PACKET_NO_REPLY,
                          sizeof(sp->header) + nquery);
@@ -791,7 +788,7 @@ int main(int argc, char *argv[]) {
     exit(-1);
   }
 
-  struct TempData {
+  struct NLPacket {
     OmeletProtoHeader header;
     uint8_t buffer[kNLBufferSize];
   } buf;
