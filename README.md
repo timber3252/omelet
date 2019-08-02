@@ -13,6 +13,12 @@ A cross-platform dynamic virtual network. Currently it is in the initial develop
 
 - openssl
 
+## Requirements
+
+- Server: support IPv6 dual-protocol stack
+- Relay: static external IPv4 IP
+- Client: IPv4 or IPv6, support tun device
+
 ## See Also
 
 [swwind/proline](https://github.com/swwind/proline)

@@ -12,6 +12,7 @@ ra::ConsoleLog logc;
 ra::Endpoint local_addr, server_addr, api_addr;
 ra::Address virtual_ip;
 ra::RMap<ra::Address, ra::Endpoint> routers;
+std::optional<ra::Endpoint> relay_addr{};
 
 std::chrono::system_clock::time_point last_heartbeat;
 int local_sockfd, api_sockfd;
@@ -20,22 +21,85 @@ volatile bool need_verification;
 int tun_fd, nread;
 char tun_name[IFNAMSIZ];
 
+bool is_v4;
+
 template <size_t size>
-void omelet_send(int fd, const ra::Packet<size> &pack, ra::Endpoint ep) {
+void relay_send(int fd, const ra::IPv4RelayPacket<ra::Packet<size>> &pack, ra::Endpoint ep) {
   auto *enc_pack = new uint8_t[size];
-  int len = ra::aes_encrypt(pack.const_data(), pack.header.length, ra::aes_key,
+  int len = ra::aes_encrypt(pack.const_data(), pack.raw_packet.header.length + sizeof pack.header, ra::aes_key,
                             enc_pack);
 
   //  logc(LogLevel::Debug) << "send packet [" << int(pack.header.packet_source)
   //  << ", " << int(pack.header.packet_type) << ", " << pack.header.length <<
   //  "] to " << ep.address().to_string();
 
-  // TODO: ErrorEvent Queue
   sendto(fd, enc_pack, len, 0,
          reinterpret_cast<const sockaddr *>(&ep.raw_sockaddr()),
          sizeof ep.raw_sockaddr());
 
   delete[] enc_pack;
+}
+
+template <size_t size>
+std::optional<ra::Endpoint> relay_recv(int fd, ra::IPv4RelayPacket<ra::Packet<size>> &pack) {
+  auto *enc_pack = new uint8_t[size];
+  sockaddr_in6 sender_addr{};
+  socklen_t sender_addr_len = sizeof sender_addr;
+
+  int nrecv = recvfrom(fd, enc_pack, size, 0, (sockaddr *)&sender_addr,
+                       &sender_addr_len);
+
+  if (nrecv < 0) {
+    return {};
+  }
+
+  ra::aes_decrypt(enc_pack, nrecv, ra::aes_key, pack.data());
+
+  //  logc(LogLevel::Debug) << "receive packet [" <<
+  //  int(pack.header.packet_source) << ", " << int(pack.header.packet_type) <<
+  //  ", " << pack.header.length << "] from " <<
+  //  ra::Endpoint(sender_addr).address().to_string();
+
+  return ra::Endpoint(sender_addr);
+}
+
+template <size_t size>
+void omelet_send(int fd, const ra::Packet<size> &pack, ra::Endpoint ep) {
+  if (is_v4) {
+    auto *pack_relay = new ra::IPv4RelayPacket<ra::Packet<size>>();
+    memcpy(pack_relay->raw_packet.data(), pack.const_data(), sizeof pack);
+
+    pack_relay->header.protocol_id = PROTOCOL_RELAY;
+    if (pack.header.packet_source == PACKET_FROM_CLIENT) {
+      pack_relay->header.packet_type = PACKET_RELAY_RAW_TO_SERVER;
+    } else if (pack.header.packet_source == PACKET_FROM_PEERS) {
+      pack_relay->header.packet_type = PACKET_RELAY_RAW_TO_PEERS;
+    }
+
+    auto src_addr = local_addr.address().raw_bytes();
+    std::copy(src_addr.begin(), src_addr.end(), pack_relay->header.source_ip);
+    pack_relay->header.source_port = local_addr.port();
+
+    auto dest_addr = ep.address().raw_bytes();
+    std::copy(dest_addr.begin(), dest_addr.end(), pack_relay->header.dest_ip);
+    pack_relay->header.dest_port = ep.port();
+
+    relay_send(fd, *pack_relay, ep);
+  } else {
+    auto *enc_pack = new uint8_t[size];
+    int len = ra::aes_encrypt(pack.const_data(), pack.header.length, ra::aes_key,
+                              enc_pack);
+
+    //  logc(LogLevel::Info) << "send packet [" << int(pack.header.packet_source)
+    //  << ", " << int(pack.header.packet_type) << ", " << pack.header.length <<
+    //  "]";
+
+    sendto(fd, enc_pack, len, 0,
+           reinterpret_cast<const sockaddr *>(&ep.raw_sockaddr()),
+           sizeof ep.raw_sockaddr());
+
+    delete[] enc_pack;
+  }
 }
 
 template <size_t size>
@@ -260,14 +324,33 @@ void do_recv() {
     auto sender = omelet_recv(local_sockfd, *pack);
 
     if (sender.has_value()) {
-      if (pack->header.packet_source == PACKET_FROM_SERVER) {
-        std::thread resolve_thread(handle_server_packet<OMELET_AL_BUFFER_SIZE>,
-                                   sender.value(), pack);
-        resolve_thread.detach();
-      } else if (pack->header.packet_source == PACKET_FROM_PEERS) {
-        std::thread resolve_thread(handle_peer_packet<OMELET_AL_BUFFER_SIZE>,
-                                   sender.value(), pack);
-        resolve_thread.detach();
+      if (pack->header.protocol_id == PROTOCOL_OMELET) {
+        if (pack->header.packet_source == PACKET_FROM_SERVER) {
+          std::thread resolve_thread(handle_server_packet<OMELET_AL_BUFFER_SIZE>,
+                                     sender.value(), pack);
+          resolve_thread.detach();
+        } else if (pack->header.packet_source == PACKET_FROM_PEERS) {
+          std::thread resolve_thread(handle_peer_packet<OMELET_AL_BUFFER_SIZE>,
+                                     sender.value(), pack);
+          resolve_thread.detach();
+        }
+      } else {
+        auto *pack_relay = new ra::IPv4RelayPacket<ra::Packet<OMELET_AL_BUFFER_SIZE>>();
+        memcpy(pack_relay->data(), pack->data(), OMELET_AL_BUFFER_SIZE);
+
+        ra::ipv6_address_t a;
+        std::copy(pack_relay->header.source_ip, pack_relay->header.source_ip + 16, a.begin());
+        ra::Endpoint ep(a, pack_relay->header.source_port);
+
+        if (pack_relay->raw_packet.header.packet_source == PACKET_FROM_SERVER) {
+          std::thread resolve_thread(handle_server_packet<OMELET_AL_BUFFER_SIZE>,
+                                     ep, pack);
+          resolve_thread.detach();
+        } else if (pack_relay->raw_packet.header.packet_source == PACKET_FROM_PEERS) {
+          std::thread resolve_thread(handle_peer_packet<OMELET_AL_BUFFER_SIZE>,
+                                     ep, pack);
+          resolve_thread.detach();
+        }
       }
     }
   }
@@ -360,6 +443,18 @@ void serve_local_api() {
   }
 }
 
+void do_relay_heartbeat() {
+  auto *pack = new ra::IPv4RelayPacket<ra::Packet<OMELET_AL_BUFFER_SIZE>>;
+  pack->header.protocol_id = PROTOCOL_RELAY;
+  pack->header.packet_type = PACKET_RELAY_HEARTBEAT;
+
+  while (true) {
+    relay_send(local_sockfd, *pack, relay_addr.value());
+
+    std::this_thread::sleep_for(std::chrono::seconds(15));
+  }
+}
+
 int main(int argc, char *argv[]) {
   int ch;
 
@@ -367,10 +462,12 @@ int main(int argc, char *argv[]) {
   server_addr = ra::Endpoint("[::]:21121");
   api_addr = ra::Endpoint("[::]:21183");
 
+  is_v4 = false;
+
   while ((ch = getopt(argc, argv, "hl:k:s:b:r:")) != -1) {
     switch (ch) {
     case 'h': {
-      printf("Usage: %s arguments (IPv6 Only)                            \n"
+      printf("Usage: %s arguments                                        \n"
              "  -h           show help                                   \n"
              "  -l addr      set local address (default = [::]:36868)    \n"
              "  -k aes_key   use specific aes key (length = 128)         \n"
@@ -431,6 +528,36 @@ int main(int argc, char *argv[]) {
 
   init_socket();
 
+  if (relay_addr.has_value()) {
+    auto *pack = new ra::IPv4RelayPacket<ra::Packet<OMELET_AL_BUFFER_SIZE>>;
+    pack->header.protocol_id = PROTOCOL_RELAY;
+    pack->header.packet_type = PACKET_RELAY_VERIFICATION;
+
+    if (local_addr.address().is_v6()) {
+      pack->header.packet_source = PACKET_RELAY_FROM_IPV6_CLIENT;
+    } else {
+      pack->header.packet_source = PACKET_RELAY_FROM_IPV4_CLIENT;
+    }
+
+    auto addr = local_addr.address().raw_bytes();
+    std::copy(addr.begin(), addr.end(), pack->header.source_ip);
+    pack->header.source_port = local_addr.port();
+
+    relay_send(local_sockfd, *pack, relay_addr.value());
+  }
+
+  if (local_addr.address().is_v4()) {
+    if (!relay_addr.has_value()) {
+      logc(LogLevel::Fatal) << "local socket is running on ipv4 but no relay server provided";
+      exit(-1);
+    }
+
+    is_v4 = true;
+
+    std::thread heartbeat_thread(do_relay_heartbeat);
+    heartbeat_thread.detach();
+  }
+
   signal(SIGINT, do_leave);
   signal(SIGKILL, do_leave);
   signal(SIGTERM, do_leave);
@@ -454,11 +581,6 @@ int main(int argc, char *argv[]) {
     }
 
     do_verification();
-  }
-
-  if (local_addr.address().is_v4()) {
-    // TODO: 对于 IPv4 提示使用中继服务器（二层隧道协议）
-    return 0;
   }
 
   std::thread routers_update_thread(do_routers_update);

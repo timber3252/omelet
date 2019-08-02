@@ -107,10 +107,14 @@ void ra::Address::random() {
 }
 
 ra::Address::Address(const ra::ipv6_address_t &raw_ip) {
-  _type = IPv6;
-  _sa.sin6_family = AF_INET6;
-  _addr6 = raw_ip;
-  std::copy(_addr6.begin(), _addr6.end(), _sa.sin6_addr.s6_addr);
+  sockaddr_in6 sa6{};
+  sa6.sin6_family = AF_INET6;
+  std::copy(raw_ip.begin(), raw_ip.end(), sa6.sin6_addr.s6_addr);
+
+  char str[INET6_ADDRSTRLEN];
+  inet_ntop(sa6.sin6_family,
+            &(sa6.sin6_addr), str, INET6_ADDRSTRLEN);
+  *this = from_string(str);
 }
 
 bool ra::Address::operator==(const ra::Address &other) const {
@@ -123,6 +127,37 @@ ra::ipv6_address_t ra::Address::raw_bytes() const {
     ret[i] = _sa.sin6_addr.s6_addr[i];
   }
   return ret;
+}
+
+std::optional<ra::ipv4_address_t> ra::Address::to_v4_addr() const {
+  if (_type == IPv4) {
+    ipv4_address_t addr;
+
+    for (int i = 0; i < 4; ++i) {
+      addr[i] = _addr6[i + 12];
+    }
+
+    return addr;
+  } else {
+    return {};
+  }
+}
+
+std::optional<std::string> ra::Address::to_v4_string() const {
+  if (_type == IPv4) {
+    char str[INET_ADDRSTRLEN];
+    uint8_t addr[4];
+
+    for (int i = 0; i < 4; ++i) {
+      addr[i] = _addr6[i + 12];
+    }
+
+    inet_ntop(AF_INET, addr, str, INET_ADDRSTRLEN);
+
+    return std::string(str);
+  } else {
+    return {};
+  }
 }
 
 ra::Endpoint::Endpoint(const std::string &ip, ra::port_t port)
@@ -169,4 +204,12 @@ ra::Endpoint::Endpoint(const sockaddr_in6 &raw_addr6) : _addr6(), _port(0) {
 ra::Endpoint::Endpoint(const ra::ipv6_address_t &ip, ra::port_t port)
     : _addr6(ip), _port(port) {
   _addr6.raw_sockaddr().sin6_port = htons(_port);
+}
+
+bool ra::Endpoint::operator<(const ra::Endpoint &other) const {
+  return _addr6 < other._addr6 || _port < other._port;
+}
+
+bool ra::Endpoint::operator==(const ra::Endpoint &other) const {
+  return _addr6 == other._addr6 && _port == other._port;
 }

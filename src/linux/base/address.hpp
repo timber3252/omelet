@@ -11,6 +11,7 @@ namespace ra {
 
 typedef uint16_t port_t;
 typedef std::array<uint8_t, 16> ipv6_address_t;
+typedef std::array<uint8_t, 4> ipv4_address_t;
 
 class Address {
 public:
@@ -29,7 +30,8 @@ public:
   static Address from_string(std::string ip);
   sockaddr_in6 &raw_sockaddr();
 
-  // TODO: ipv4_address_t to_v4() const;
+  std::optional<ipv4_address_t> to_v4_addr() const;
+  std::optional<std::string> to_v4_string() const;
 
   ipv6_address_t raw_bytes() const;
 
@@ -56,6 +58,9 @@ public:
   const Address &address() const;
   const port_t &port() const;
   const sockaddr_in6 &raw_sockaddr();
+
+  bool operator<(const Endpoint &other) const;
+  bool operator==(const Endpoint &other) const;
 
 private:
   Address _addr6;
