@@ -2,13 +2,13 @@
 // Created by timber3252 on 6/2/19.
 //
 
-#include "log.h"
+#include "linux/base/log.hpp"
 
-ConsoleLog::LogStream ConsoleLog::operator()(LogLevel level) {
+ra::ConsoleLog::LogStream ra::ConsoleLog::operator()(LogLevel level) {
   return ConsoleLog::LogStream(*this, level);
 }
 
-const tm *ConsoleLog::get_local_time() {
+const tm *ra::ConsoleLog::get_local_time() {
   auto now = std::chrono::system_clock::now();
   auto in_time_t = std::chrono::system_clock::to_time_t(now);
 #ifdef WIN32
@@ -19,14 +19,24 @@ const tm *ConsoleLog::get_local_time() {
   return &_local_time;
 }
 
-void ConsoleLog::endline(LogLevel level, std::string &&msg) {
+void ra::ConsoleLog::endline(LogLevel level, std::string &&msg) {
   _lock.lock();
   write(get_local_time(), level_str[static_cast<int>(level)], msg.c_str());
   _lock.unlock();
 }
 
-ConsoleLog::ConsoleLog() : _lock(), _local_time() {
+ra::ConsoleLog::ConsoleLog() : _lock(), _local_time() {
   std::ios::sync_with_stdio(false);
+}
+
+ra::ConsoleLog::LogStream::LogStream(ConsoleLog &logger, LogLevel level)
+    : _logger(logger), _level(level) {}
+
+ra::ConsoleLog::LogStream::LogStream(const ConsoleLog::LogStream &other)
+    : _logger(other._logger), _level(other._level) {}
+
+ra::ConsoleLog::LogStream::~LogStream() {
+  _logger.endline(_level, std::move(str()));
 }
 
 std::ostream &operator<<(std::ostream &stream, const tm *tm) {
@@ -38,25 +48,20 @@ std::ostream &operator<<(std::ostream &stream, const tm *tm) {
                 << std::setw(2) << tm->tm_sec;
 }
 
-ConsoleLog::LogStream::LogStream(ConsoleLog &logger, LogLevel level)
-    : _logger(logger), _level(level) {}
-
-ConsoleLog::LogStream::LogStream(const ConsoleLog::LogStream &other)
-    : _logger(other._logger), _level(other._level) {}
-
-ConsoleLog::LogStream::~LogStream() {
-  _logger.endline(_level, std::move(str()));
-}
-
-void ConsoleLog::write(const tm *tm, const char *level, const char *msg) {
+void ra::ConsoleLog::write(const tm *tm, const char *level, const char *msg) {
   bool err = !strcmp(level, "FATAL") || !strcmp(level, "ERROR");
+
+  // cross-platform ?
   if (err) {
     std::cout << "\033[33m";
   }
+
   std::cout << '[' << tm << ']' << '[' << level << ']' << '\t' << msg
             << std::endl;
+
   if (err) {
     std::cout << "\033[0m";
   }
+
   std::cout.flush();
 }

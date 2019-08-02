@@ -1,14 +1,13 @@
 //
-// Created by timber3252 on 7/19/19.
+// Created by timber3252 on 7/30/19.
 //
 
-#ifndef OMELET_AES_H
-#define OMELET_AES_H
+#include "aes.hpp"
 
-#include <openssl/aes.h>
-#include "global.h"
+namespace ra {
+const size_t kAesBlockSize = AES_BLOCK_SIZE;
 
-uint8_t aes_key[kAesKeyLength] = {
+uint8_t aes_key[OMELET_AES_KEY_LENGTH] = {
     0x2a, 0x2,  0x29, 0x68, 0xb7, 0xb8, 0x4e, 0xea, 0x2d, 0x16, 0x4a, 0x34,
     0x98, 0xcb, 0x31, 0xc0, 0xae, 0x9a, 0xdf, 0x98, 0x33, 0x84, 0x42, 0x52,
     0xd8, 0xea, 0xe2, 0x9b, 0xf7, 0x60, 0x53, 0xb,  0xf7, 0x85, 0x2b, 0xb5,
@@ -20,32 +19,30 @@ uint8_t aes_key[kAesKeyLength] = {
     0x79, 0x66, 0x94, 0x64, 0x28, 0xd9, 0xa0, 0x90, 0x24, 0x9b, 0x11, 0x96,
     0xfa, 0x3d, 0xd8, 0x7c, 0x3e, 0x76, 0xbb, 0x36, 0x26, 0xf5, 0x43, 0x40,
     0x1c, 0x44, 0x7b, 0x3c, 0x8f, 0xe0, 0x5,  0x6b};
+} // namespace ra
 
-
-int aes_encrypt(const unsigned char *data, const size_t len,
-                const unsigned char *key, unsigned char *encrypt_data) {
+int ra::aes_encrypt(const uint8_t *data, const size_t len, const uint8_t *key,
+                    uint8_t *encrypt_data) {
   AES_KEY aes_key;
   memset(&aes_key, 0x00, sizeof aes_key);
   uint8_t ivec[16] = {0};
-  if (AES_set_encrypt_key(key, kAesKeyLength, &aes_key) < 0) {
-    fprintf(stderr, "Unable to set encryption key in AES...\n");
+  if (AES_set_encrypt_key(key, OMELET_AES_KEY_LENGTH, &aes_key) < 0) {
+    fprintf(stderr, "unable to set encryption key in AES...\n");
     return -1;
   }
   AES_cbc_encrypt(data, encrypt_data, len, &aes_key, ivec, AES_ENCRYPT);
-  return 0;
+  return ceil(len / (double)kAesBlockSize) * kAesBlockSize;
 }
 
-int aes_decrypt(const unsigned char *encrypt_data, const size_t len,
-                const unsigned char *key, unsigned char *decrypt_data) {
+int ra::aes_decrypt(const uint8_t *encrypt_data, const size_t len,
+                    const uint8_t *key, uint8_t *decrypt_data) {
   AES_KEY aes_key;
   memset(&aes_key, 0x00, sizeof aes_key);
   uint8_t ivec[16] = {0};
-  if (AES_set_decrypt_key(key, kAesKeyLength, &aes_key) < 0) {
-    fprintf(stderr, "Unable to set decryption key in AES...\n");
+  if (AES_set_decrypt_key(key, OMELET_AES_KEY_LENGTH, &aes_key) < 0) {
+    fprintf(stderr, "unable to set decryption key in AES...\n");
     return -1;
   }
   AES_cbc_encrypt(encrypt_data, decrypt_data, len, &aes_key, ivec, AES_DECRYPT);
   return 0;
 }
-
-#endif  // OMELET_AES_H

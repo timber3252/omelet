@@ -5,7 +5,9 @@
 #ifndef PROLINE_BACKEND_LOG_H
 #define PROLINE_BACKEND_LOG_H
 
-#include "global.h"
+#include "include.hpp"
+
+namespace ra {
 
 enum class LogLevel { Debug = 0, Info = 1, Warn = 2, Error = 3, Fatal = 4 };
 
@@ -14,14 +16,14 @@ const char level_str[][6] = {"DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
 class ConsoleLog {
   class LogStream;
 
- public:
+public:
   ConsoleLog();
 
   virtual ~ConsoleLog() = default;
 
   LogStream operator()(LogLevel level);
 
- private:
+private:
   const tm *get_local_time();
 
   void endline(LogLevel level, std::string &&msg);
@@ -36,7 +38,7 @@ class ConsoleLog::LogStream : public std::ostringstream {
   ConsoleLog &_logger;
   LogLevel _level;
 
- public:
+public:
   LogStream(ConsoleLog &logger, LogLevel level);
 
   LogStream(const LogStream &other);
@@ -44,6 +46,8 @@ class ConsoleLog::LogStream : public std::ostringstream {
   ~LogStream() override;
 };
 
+} // namespace ra
+
 std::ostream &operator<<(std::ostream &stream, const tm *tm);
 
-#endif  // PROLINE_BACKEND_LOG_H
+#endif // PROLINE_BACKEND_LOG_H
