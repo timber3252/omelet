@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
       }
     }
   }
-  std::default_random_engine e(srand(nullptr));
+  std::default_random_engine e(srand(0));
   std::uniform_int_distribution<uint8_t> gen(0x00, 0xff);
   uint8_t *res = new uint8_t[length];
   for (int i = 0; i < length; ++i) {
