@@ -196,7 +196,9 @@ ra::Endpoint::Endpoint(const sockaddr_in6 &raw_addr6) : _addr6(), _port(0) {
   char str[INET6_ADDRSTRLEN];
   inet_ntop(raw_addr6.sin6_family,
             &(raw_addr6.sin6_addr), str, INET6_ADDRSTRLEN);
-  _addr6.from_string(std::string(str));
+  _addr6 = Address::from_string(std::string(str));
+
+//  printf("%s %d\n", str, _addr6.is_v4());
 
   _addr6.raw_sockaddr() = raw_addr6;
 }

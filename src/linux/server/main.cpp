@@ -152,7 +152,12 @@ void init_socket() {
 
 template <size_t size>
 void handle_packet(const ra::Endpoint &sender,
-                   std::shared_ptr<ra::Packet<size>> pack) {
+                   ra::Packet<size> *pack) {
+
+  if (pack->header.packet_source != PACKET_FROM_CLIENT) {
+    return;
+  }
+
   uint8_t type = pack->header.packet_type;
 
   switch (type) {
@@ -350,15 +355,10 @@ int main(int argc, char *argv[]) {
   signal(SIGQUIT, do_close);
 
   while (true) {
-    std::shared_ptr<ra::Packet<OMELET_AL_BUFFER_SIZE>> pack(
-        new ra::Packet<OMELET_AL_BUFFER_SIZE>);
+    auto *pack(new ra::Packet<OMELET_AL_BUFFER_SIZE>);
     auto sender = omelet_recv(local_sockfd, *pack);
 
     if (sender.has_value()) {
-      if (pack->header.packet_source != PACKET_FROM_CLIENT) {
-        continue;
-      }
-
       if (pack->header.protocol_id == PROTOCOL_OMELET) {
         std::thread resolve_thread(handle_packet<OMELET_AL_BUFFER_SIZE>,
                                    sender.value(), pack);
@@ -372,8 +372,9 @@ int main(int argc, char *argv[]) {
         ra::Endpoint ep(a, pack_relay->header.source_port);
 
         std::thread resolve_thread(handle_packet<OMELET_AL_BUFFER_SIZE>,
-                                   ep, std::shared_ptr<ra::Packet<OMELET_AL_BUFFER_SIZE>>(&pack_relay->raw_packet));
+                                   ep, &pack_relay->raw_packet);
         resolve_thread.detach();
+        delete pack;
       }
     }
   }

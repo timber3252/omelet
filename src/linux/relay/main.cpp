@@ -240,11 +240,11 @@ int main(int argc, char *argv[]) {
     auto ep = relay_recv(local_sockfd, *pack);
 
     if (ep.has_value()) {
-      for (int i = 0; i < pack->raw_packet.header.length + sizeof pack->header; ++i) {
-        printf("%d ", pack->data()[i]);
-      }
-      printf("\n");
-      fflush(stdout);
+//      for (int i = 0; i < pack->raw_packet.header.length + sizeof pack->header; ++i) {
+//        printf("%d ", pack->data()[i]);
+//      }
+//      printf("\n");
+//      fflush(stdout);
 
       std::thread resolve_packet_thread(handle_packet<OMELET_AL_BUFFER_SIZE>, ep.value(), pack);
       resolve_packet_thread.detach();

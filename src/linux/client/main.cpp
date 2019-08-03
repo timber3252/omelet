@@ -178,8 +178,7 @@ void do_routers_update() {
 
 template <size_t size>
 void handle_server_packet(const ra::Endpoint &sender,
-                          std::shared_ptr<ra::Packet<size>> pack) {
-  // TODO: handle server packet
+                          ra::Packet<size> *pack) {
   uint8_t type = pack->header.packet_type;
 
   switch (type) {
@@ -236,7 +235,7 @@ void handle_server_packet(const ra::Endpoint &sender,
 
 template <size_t size>
 void handle_peer_packet(const ra::Endpoint &sender,
-                        std::shared_ptr<ra::Packet<size>> pack) {
+                        ra::Packet<size> *pack) {
   // TODO: handle peer packet
   uint8_t type = pack->header.packet_type;
 
@@ -319,8 +318,7 @@ int set_host_addr6(char *dev, in6_ifreq ifreq6) {
 
 void do_recv() {
   while (true) {
-    std::shared_ptr<ra::Packet<OMELET_AL_BUFFER_SIZE>> pack(
-        new ra::Packet<OMELET_AL_BUFFER_SIZE>);
+    auto *pack(new ra::Packet<OMELET_AL_BUFFER_SIZE>);
     auto sender = omelet_recv(local_sockfd, *pack);
 
     if (sender.has_value()) {
@@ -344,13 +342,14 @@ void do_recv() {
 
         if (pack_relay->raw_packet.header.packet_source == PACKET_FROM_SERVER) {
           std::thread resolve_thread(handle_server_packet<OMELET_AL_BUFFER_SIZE>,
-                                     ep, pack);
+                                     ep, &pack_relay->raw_packet);
           resolve_thread.detach();
         } else if (pack_relay->raw_packet.header.packet_source == PACKET_FROM_PEERS) {
           std::thread resolve_thread(handle_peer_packet<OMELET_AL_BUFFER_SIZE>,
-                                     ep, pack);
+                                     ep, &pack_relay->raw_packet);
           resolve_thread.detach();
         }
+        delete pack;
       }
     }
   }

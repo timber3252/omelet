@@ -14,7 +14,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4dee6804-00c7-42eb-a9c7-5db2136f0fe3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/TODO.md" beforeDir="false" afterPath="$PROJECT_DIR$/TODO.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/linux/base/address.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/base/address.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/linux/client/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/client/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/linux/relay/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/relay/main.cpp" afterDir="false" />
@@ -36,8 +35,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/server/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="696">
-              <caret line="79" column="50" selection-start-line="79" selection-start-column="50" selection-end-line="79" selection-end-column="50" />
+            <state relative-caret-position="314">
+              <caret line="278" column="12" selection-start-line="278" selection-start-column="6" selection-end-line="278" selection-end-column="12" />
             </state>
           </provider>
         </entry>
@@ -54,8 +53,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/relay/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="684">
-              <caret line="51" column="19" lean-forward="true" selection-start-line="51" selection-start-column="19" selection-end-line="51" selection-end-column="19" />
+            <state relative-caret-position="535">
+              <caret line="245" column="14" selection-start-line="245" selection-start-column="8" selection-end-line="245" selection-end-column="14" />
               <folding>
                 <element signature="e#2306#2319#0" expanded="true" />
               </folding>
@@ -63,20 +62,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/linux/base/address.cpp">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/linux/base/address.hpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="485">
-              <caret line="200" column="36" lean-forward="true" selection-start-line="200" selection-start-column="36" selection-end-line="200" selection-end-column="36" />
+            <state relative-caret-position="506">
+              <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/linux/base/address.hpp">
+        <entry file="file://$PROJECT_DIR$/src/linux/base/address.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="420">
-              <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
+            <state relative-caret-position="259">
+              <caret line="184" selection-start-line="184" selection-end-line="184" />
             </state>
           </provider>
         </entry>
@@ -84,7 +83,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/base/packet.hpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="52">
+            <state relative-caret-position="-155">
               <caret line="105" column="2" selection-start-line="105" selection-start-column="2" selection-end-line="105" selection-end-column="2" />
               <folding>
                 <element signature="e#127#149#0" expanded="true" />
@@ -102,11 +101,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/linux/client/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-282">
-              <caret line="86" column="52" lean-forward="true" selection-start-line="86" selection-start-column="52" selection-end-line="86" selection-end-column="52" />
+            <state relative-caret-position="268">
+              <caret line="466" column="17" lean-forward="true" selection-start-line="466" selection-start-column="17" selection-end-line="466" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -115,8 +114,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>++allocator</find>
-      <find>do_recv</find>
       <find>tun_thread</find>
       <find>PACKET_GET_ROUTERS</find>
       <find>routers_update</find>
@@ -131,7 +128,6 @@
       <find>_gateway</find>
       <find>nwrite</find>
       <find>for (int i = 0;</find>
-      <find>printf</find>
       <find>bind(</find>
       <find>detach</find>
       <find>thread</find>
@@ -145,6 +141,9 @@
       <find>omelet_recv</find>
       <find>relay_send</find>
       <find>relay_addr =</find>
+      <find>_addr6.from_string</find>
+      <find>do_recv</find>
+      <find>printf</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -185,10 +184,10 @@
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/src/linux/base/address.hpp" />
         <option value="$PROJECT_DIR$/TODO.md" />
-        <option value="$PROJECT_DIR$/src/linux/relay/main.cpp" />
-        <option value="$PROJECT_DIR$/src/linux/client/main.cpp" />
-        <option value="$PROJECT_DIR$/src/linux/server/main.cpp" />
         <option value="$PROJECT_DIR$/src/linux/base/address.cpp" />
+        <option value="$PROJECT_DIR$/src/linux/server/main.cpp" />
+        <option value="$PROJECT_DIR$/src/linux/client/main.cpp" />
+        <option value="$PROJECT_DIR$/src/linux/relay/main.cpp" />
       </list>
     </option>
   </component>
@@ -329,12 +328,12 @@
       <workItem from="1564721818550" duration="851000" />
       <workItem from="1564725101667" duration="203000" />
       <workItem from="1564749708702" duration="10391000" />
-      <workItem from="1564800642087" duration="2935000" />
+      <workItem from="1564800642087" duration="4572000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="101732000" />
+    <option name="totallyTimeSpent" value="103369000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -547,13 +546,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/linux/server/main.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="696">
-          <caret line="79" column="50" selection-start-line="79" selection-start-column="50" selection-end-line="79" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/linux/base/packet.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="834">
@@ -561,16 +553,23 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/linux/client/main.cpp">
+    <entry file="file://$PROJECT_DIR$/src/linux/base/address.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-282">
-          <caret line="86" column="52" lean-forward="true" selection-start-line="86" selection-start-column="52" selection-end-line="86" selection-end-column="52" />
+        <state relative-caret-position="506">
+          <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/linux/base/address.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="259">
+          <caret line="184" selection-start-line="184" selection-end-line="184" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/linux/base/packet.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="52">
+        <state relative-caret-position="-155">
           <caret line="105" column="2" selection-start-line="105" selection-start-column="2" selection-end-line="105" selection-end-column="2" />
           <folding>
             <element signature="e#127#149#0" expanded="true" />
@@ -578,27 +577,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/linux/base/address.hpp">
+    <entry file="file://$PROJECT_DIR$/src/linux/server/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
+        <state relative-caret-position="314">
+          <caret line="278" column="12" selection-start-line="278" selection-start-column="6" selection-end-line="278" selection-end-column="12" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/linux/relay/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="684">
-          <caret line="51" column="19" lean-forward="true" selection-start-line="51" selection-start-column="19" selection-end-line="51" selection-end-column="19" />
+        <state relative-caret-position="535">
+          <caret line="245" column="14" selection-start-line="245" selection-start-column="8" selection-end-line="245" selection-end-column="14" />
           <folding>
             <element signature="e#2306#2319#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/linux/base/address.cpp">
+    <entry file="file://$PROJECT_DIR$/src/linux/client/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="485">
-          <caret line="200" column="36" lean-forward="true" selection-start-line="200" selection-start-column="36" selection-end-line="200" selection-end-column="36" />
+        <state relative-caret-position="268">
+          <caret line="466" column="17" lean-forward="true" selection-start-line="466" selection-start-column="17" selection-end-line="466" selection-end-column="17" />
         </state>
       </provider>
     </entry>
