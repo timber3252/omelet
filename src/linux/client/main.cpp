@@ -84,7 +84,7 @@ void omelet_send(int fd, const ra::Packet<size> &pack, ra::Endpoint ep) {
     std::copy(dest_addr.begin(), dest_addr.end(), pack_relay->header.dest_ip);
     pack_relay->header.dest_port = ep.port();
 
-    relay_send(fd, *pack_relay, ep);
+    relay_send(fd, *pack_relay, relay_addr.value());
   } else {
     auto *enc_pack = new uint8_t[size];
     int len = ra::aes_encrypt(pack.const_data(), pack.header.length, ra::aes_key,
@@ -543,6 +543,7 @@ int main(int argc, char *argv[]) {
     pack->header.source_port = local_addr.port();
 
     relay_send(local_sockfd, *pack, relay_addr.value());
+    delete pack;
   }
 
   if (local_addr.address().is_v4()) {

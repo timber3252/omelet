@@ -77,7 +77,7 @@ void omelet_send(int fd, const ra::Packet<size> &pack, ra::Endpoint ep) {
     pack_relay->header.dest_port = ep.port();
 
 
-    relay_send(fd, *pack_relay, ep);
+    relay_send(fd, *pack_relay, relay_addr.value());
   } else {
     auto *enc_pack = new uint8_t[size];
     int len = ra::aes_encrypt(pack.const_data(), pack.header.length, ra::aes_key,

@@ -14,9 +14,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4dee6804-00c7-42eb-a9c7-5db2136f0fe3" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TODO.md" beforeDir="false" afterPath="$PROJECT_DIR$/TODO.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/linux/base/address.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/base/address.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/linux/client/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/client/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/linux/relay/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/relay/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/linux/server/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/server/main.cpp" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -34,8 +36,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/server/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="316">
-              <caret line="131" column="32" lean-forward="true" selection-start-line="131" selection-start-column="31" selection-end-line="131" selection-end-column="32" />
+            <state relative-caret-position="696">
+              <caret line="79" column="50" selection-start-line="79" selection-start-column="50" selection-end-line="79" selection-end-column="50" />
             </state>
           </provider>
         </entry>
@@ -49,11 +51,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/relay/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="546">
-              <caret line="189" column="45" lean-forward="true" selection-start-line="189" selection-start-column="45" selection-end-line="189" selection-end-column="45" />
+            <state relative-caret-position="684">
+              <caret line="51" column="19" lean-forward="true" selection-start-line="51" selection-start-column="19" selection-end-line="51" selection-end-column="19" />
               <folding>
                 <element signature="e#2306#2319#0" expanded="true" />
               </folding>
@@ -61,14 +63,31 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/linux/base/address.cpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="485">
+              <caret line="200" column="36" lean-forward="true" selection-start-line="200" selection-start-column="36" selection-end-line="200" selection-end-column="36" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/linux/base/address.hpp">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="420">
+              <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/base/packet.hpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2415">
+            <state relative-caret-position="52">
               <caret line="105" column="2" selection-start-line="105" selection-start-column="2" selection-end-line="105" selection-end-column="2" />
               <folding>
                 <element signature="e#127#149#0" expanded="true" />
-                <element signature="e#2200#2209#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -77,7 +96,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/base/packet.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="897">
+            <state relative-caret-position="834">
               <caret line="39" selection-start-line="39" selection-end-line="39" />
             </state>
           </provider>
@@ -86,8 +105,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/client/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="314">
-              <caret line="517" column="40" selection-start-line="517" selection-start-column="40" selection-end-line="517" selection-end-column="40" />
+            <state relative-caret-position="-282">
+              <caret line="86" column="52" lean-forward="true" selection-start-line="86" selection-start-column="52" selection-end-line="86" selection-end-column="52" />
             </state>
           </provider>
         </entry>
@@ -159,17 +178,17 @@
         <option value="$PROJECT_DIR$/src/linux/base/include.hpp" />
         <option value="$PROJECT_DIR$/src/linux/base/aes.cpp" />
         <option value="$PROJECT_DIR$/src/linux/base/r_map.hpp" />
-        <option value="$PROJECT_DIR$/TODO.md" />
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/src/linux/base/global.hpp" />
         <option value="$PROJECT_DIR$/src/linux/base/packet.hpp" />
         <option value="$PROJECT_DIR$/src/linux/base/packet.cpp" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/src/linux/base/address.hpp" />
-        <option value="$PROJECT_DIR$/src/linux/base/address.cpp" />
+        <option value="$PROJECT_DIR$/TODO.md" />
+        <option value="$PROJECT_DIR$/src/linux/relay/main.cpp" />
         <option value="$PROJECT_DIR$/src/linux/client/main.cpp" />
         <option value="$PROJECT_DIR$/src/linux/server/main.cpp" />
-        <option value="$PROJECT_DIR$/src/linux/relay/main.cpp" />
+        <option value="$PROJECT_DIR$/src/linux/base/address.cpp" />
       </list>
     </option>
   </component>
@@ -310,12 +329,12 @@
       <workItem from="1564721818550" duration="851000" />
       <workItem from="1564725101667" duration="203000" />
       <workItem from="1564749708702" duration="10391000" />
-      <workItem from="1564800642087" duration="873000" />
+      <workItem from="1564800642087" duration="2935000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="99670000" />
+    <option name="totallyTimeSpent" value="101732000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -330,7 +349,7 @@
     <frame x="48" y="48" width="1872" height="1032" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4967811" visible="true" weight="0.14089912" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4967811" weight="0.29472476" />
       <window_info id="Structure" order="1" sideWeight="0.5032189" side_tool="true" weight="0.32894737" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -484,16 +503,6 @@
     <entry file="file://$PROJECT_DIR$/LICENSE">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/TODO.md">
-      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-        <state split_layout="SPLIT">
-          <first_editor relative-caret-position="69">
-            <caret line="3" column="53" selection-start-line="3" selection-start-column="53" selection-end-line="3" selection-end-column="53" />
-          </first_editor>
-          <second_editor />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="FIRST">
@@ -521,20 +530,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/linux/base/address.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="472">
-          <caret line="213" column="43" selection-start-line="213" selection-start-column="43" selection-end-line="213" selection-end-column="43" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/linux/base/address.hpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="391">
-          <caret line="62" column="13" selection-start-line="62" selection-start-column="13" selection-end-line="62" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="322">
@@ -542,45 +537,68 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/linux/base/packet.hpp">
+    <entry file="file://$PROJECT_DIR$/TODO.md">
+      <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
+        <state split_layout="SPLIT">
+          <first_editor relative-caret-position="92">
+            <caret line="4" column="8" selection-start-line="4" selection-start-column="8" selection-end-line="4" selection-end-column="8" />
+          </first_editor>
+          <second_editor />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/linux/server/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2415">
-          <caret line="105" column="2" selection-start-line="105" selection-start-column="2" selection-end-line="105" selection-end-column="2" />
-          <folding>
-            <element signature="e#127#149#0" expanded="true" />
-            <element signature="e#2200#2209#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="696">
+          <caret line="79" column="50" selection-start-line="79" selection-start-column="50" selection-end-line="79" selection-end-column="50" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/linux/base/packet.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="897">
+        <state relative-caret-position="834">
           <caret line="39" selection-start-line="39" selection-end-line="39" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/linux/client/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="314">
-          <caret line="517" column="40" selection-start-line="517" selection-start-column="40" selection-end-line="517" selection-end-column="40" />
+        <state relative-caret-position="-282">
+          <caret line="86" column="52" lean-forward="true" selection-start-line="86" selection-start-column="52" selection-end-line="86" selection-end-column="52" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/linux/server/main.cpp">
+    <entry file="file://$PROJECT_DIR$/src/linux/base/packet.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="316">
-          <caret line="131" column="32" lean-forward="true" selection-start-line="131" selection-start-column="31" selection-end-line="131" selection-end-column="32" />
+        <state relative-caret-position="52">
+          <caret line="105" column="2" selection-start-line="105" selection-start-column="2" selection-end-line="105" selection-end-column="2" />
+          <folding>
+            <element signature="e#127#149#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/linux/base/address.hpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="22" column="7" selection-start-line="22" selection-start-column="7" selection-end-line="22" selection-end-column="7" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/linux/relay/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="546">
-          <caret line="189" column="45" lean-forward="true" selection-start-line="189" selection-start-column="45" selection-end-line="189" selection-end-column="45" />
+        <state relative-caret-position="684">
+          <caret line="51" column="19" lean-forward="true" selection-start-line="51" selection-start-column="19" selection-end-line="51" selection-end-column="19" />
           <folding>
             <element signature="e#2306#2319#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/linux/base/address.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="485">
+          <caret line="200" column="36" lean-forward="true" selection-start-line="200" selection-start-column="36" selection-end-line="200" selection-end-column="36" />
         </state>
       </provider>
     </entry>
