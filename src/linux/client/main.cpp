@@ -515,8 +515,7 @@ int main(int argc, char *argv[]) {
     }
 
     case 'r': {
-      // TODO: RELAY SERVER
-
+      relay_addr = ra::Endpoint(optarg);
       break;
     }
 

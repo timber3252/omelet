@@ -140,6 +140,9 @@ void handle_packet(const ra::Endpoint &sender,
         auto addr1 = sender.address().raw_bytes();
         std::copy(addr1.begin(), addr1.end(), pack->header.source_ip);
 
+        logc(LogLevel::Debug) << "packet from [" << sender.address().to_string() << "]:" << sender.port()
+                              << " to [" << ep.address().to_string() << "]:" << ep.port();
+
         relay_send(local_sockfd, *pack, ep);
       } else {
         // v4 to v6
@@ -150,6 +153,9 @@ void handle_packet(const ra::Endpoint &sender,
           auto addr1 = sender.address().raw_bytes();
           std::copy(addr1.begin(), addr1.end(), pack->header.source_ip);
 
+          logc(LogLevel::Debug) << "packet from [" << sender.address().to_string() << "]:" << sender.port()
+                                << " to [" << ep.address().to_string() << "]:" << ep.port();
+
           relay_send(local_sockfd, *pack, res.value());
         }
       }
@@ -159,6 +165,9 @@ void handle_packet(const ra::Endpoint &sender,
         pack->header.source_port = sender.port();
         auto addr1 = sender.address().raw_bytes();
         std::copy(addr1.begin(), addr1.end(), pack->header.source_ip);
+
+        logc(LogLevel::Debug) << "packet from [" << sender.address().to_string() << "]:" << sender.port()
+                              << " to [" << ep.address().to_string() << "]:" << ep.port();
 
         relay_send(local_sockfd, *pack, ep);
       } else {

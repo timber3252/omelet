@@ -15,16 +15,8 @@
   <component name="ChangeListManager">
     <list default="true" id="4dee6804-00c7-42eb-a9c7-5db2136f0fe3" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/linux/base/address.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/base/address.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/linux/base/address.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/base/address.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/linux/base/global.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/base/global.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/linux/base/packet.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/base/packet.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/linux/base/packet.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/base/packet.hpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/linux/client/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/client/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/linux/relay/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/relay/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/linux/server/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/linux/server/main.cpp" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -39,11 +31,11 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/server/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="359" column="7" lean-forward="true" selection-start-line="359" selection-start-column="7" selection-end-line="359" selection-end-column="7" />
+            <state relative-caret-position="316">
+              <caret line="131" column="32" lean-forward="true" selection-start-line="131" selection-start-column="31" selection-end-line="131" selection-end-column="32" />
             </state>
           </provider>
         </entry>
@@ -57,11 +49,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/linux/relay/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="357">
-              <caret line="77" column="73" selection-start-line="77" selection-start-column="19" selection-end-line="77" selection-end-column="73" />
+            <state relative-caret-position="546">
+              <caret line="189" column="45" lean-forward="true" selection-start-line="189" selection-start-column="45" selection-end-line="189" selection-end-column="45" />
               <folding>
                 <element signature="e#2306#2319#0" expanded="true" />
               </folding>
@@ -72,7 +64,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/base/packet.hpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="52">
+            <state relative-caret-position="2415">
               <caret line="105" column="2" selection-start-line="105" selection-start-column="2" selection-end-line="105" selection-end-column="2" />
               <folding>
                 <element signature="e#127#149#0" expanded="true" />
@@ -94,8 +86,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/linux/client/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-8">
-              <caret line="56" lean-forward="true" selection-start-line="56" selection-end-line="56" />
+            <state relative-caret-position="314">
+              <caret line="517" column="40" selection-start-line="517" selection-start-column="40" selection-end-line="517" selection-end-column="40" />
             </state>
           </provider>
         </entry>
@@ -104,7 +96,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>join</find>
       <find>++allocator</find>
       <find>do_recv</find>
       <find>tun_thread</find>
@@ -134,6 +125,7 @@
       <find>do_relay_</find>
       <find>omelet_recv</find>
       <find>relay_send</find>
+      <find>relay_addr =</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -172,12 +164,12 @@
         <option value="$PROJECT_DIR$/src/linux/base/global.hpp" />
         <option value="$PROJECT_DIR$/src/linux/base/packet.hpp" />
         <option value="$PROJECT_DIR$/src/linux/base/packet.cpp" />
-        <option value="$PROJECT_DIR$/src/linux/client/main.cpp" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
-        <option value="$PROJECT_DIR$/src/linux/relay/main.cpp" />
         <option value="$PROJECT_DIR$/src/linux/base/address.hpp" />
         <option value="$PROJECT_DIR$/src/linux/base/address.cpp" />
+        <option value="$PROJECT_DIR$/src/linux/client/main.cpp" />
         <option value="$PROJECT_DIR$/src/linux/server/main.cpp" />
+        <option value="$PROJECT_DIR$/src/linux/relay/main.cpp" />
       </list>
     </option>
   </component>
@@ -196,6 +188,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -246,7 +239,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -318,11 +310,12 @@
       <workItem from="1564721818550" duration="851000" />
       <workItem from="1564725101667" duration="203000" />
       <workItem from="1564749708702" duration="10391000" />
+      <workItem from="1564800642087" duration="873000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="98797000" />
+    <option name="totallyTimeSpent" value="99670000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -337,7 +330,7 @@
     <frame x="48" y="48" width="1872" height="1032" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4967811" visible="true" weight="0.13925439" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4967811" visible="true" weight="0.14089912" />
       <window_info id="Structure" order="1" sideWeight="0.5032189" side_tool="true" weight="0.32894737" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -521,13 +514,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="322">
-          <caret line="14" column="33" selection-start-line="14" selection-start-column="33" selection-end-line="14" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file:///usr/include/c++/9.1.0/thread">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="219">
@@ -549,9 +535,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="322">
+          <caret line="14" column="33" selection-start-line="14" selection-start-column="33" selection-end-line="14" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/linux/base/packet.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="52">
+        <state relative-caret-position="2415">
           <caret line="105" column="2" selection-start-line="105" selection-start-column="2" selection-end-line="105" selection-end-column="2" />
           <folding>
             <element signature="e#127#149#0" expanded="true" />
@@ -569,25 +562,25 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/linux/client/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-8">
-          <caret line="56" lean-forward="true" selection-start-line="56" selection-end-line="56" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/linux/relay/main.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="77" column="73" selection-start-line="77" selection-start-column="19" selection-end-line="77" selection-end-column="73" />
-          <folding>
-            <element signature="e#2306#2319#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="314">
+          <caret line="517" column="40" selection-start-line="517" selection-start-column="40" selection-end-line="517" selection-end-column="40" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/linux/server/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="359" column="7" lean-forward="true" selection-start-line="359" selection-start-column="7" selection-end-line="359" selection-end-column="7" />
+        <state relative-caret-position="316">
+          <caret line="131" column="32" lean-forward="true" selection-start-line="131" selection-start-column="31" selection-end-line="131" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/linux/relay/main.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="546">
+          <caret line="189" column="45" lean-forward="true" selection-start-line="189" selection-start-column="45" selection-end-line="189" selection-end-column="45" />
+          <folding>
+            <element signature="e#2306#2319#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
