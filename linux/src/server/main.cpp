@@ -2,7 +2,7 @@
 // Created by timber3252 on 7/28/19.
 //
 
-#include "linux/base/global.hpp"
+#include "src/base/global.hpp"
 
 // TODO: 服务器需要严格支持 IPv6？
 // TODO: 可以使用 IPv4 中转服务器处理

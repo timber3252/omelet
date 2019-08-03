@@ -2,7 +2,7 @@
 // Created by timber3252 on 6/2/19.
 //
 
-#include "linux/base/log.hpp"
+#include "log.hpp"
 
 ra::ConsoleLog::LogStream ra::ConsoleLog::operator()(LogLevel level) {
   return ConsoleLog::LogStream(*this, level);
