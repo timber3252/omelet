@@ -44,6 +44,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#include <ifaddrs.h>
+
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/stat.h>

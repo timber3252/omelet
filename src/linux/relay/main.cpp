@@ -143,7 +143,7 @@ void handle_packet(const ra::Endpoint &sender,
         auto addr1 = sender.address().raw_bytes();
         std::copy(addr1.begin(), addr1.end(), pack->header.source_ip);
 
-        logc(LogLevel::Debug) << "packet from [" << sender.address().to_string() << "]:" << sender.port()
+        logc(LogLevel::Info) << "packet from [" << sender.address().to_string() << "]:" << sender.port()
                               << " to [" << ep.address().to_string() << "]:" << ep.port();
 
         relay_send(local_sockfd, *pack, ep);
@@ -156,7 +156,7 @@ void handle_packet(const ra::Endpoint &sender,
           auto addr1 = sender.address().raw_bytes();
           std::copy(addr1.begin(), addr1.end(), pack->header.source_ip);
 
-          logc(LogLevel::Debug) << "packet from [" << sender.address().to_string() << "]:" << sender.port()
+          logc(LogLevel::Info) << "packet from [" << sender.address().to_string() << "]:" << sender.port()
                                 << " to [" << ep.address().to_string() << "]:" << ep.port();
 
           relay_send(local_sockfd, *pack, res.value());
@@ -169,7 +169,7 @@ void handle_packet(const ra::Endpoint &sender,
         auto addr1 = sender.address().raw_bytes();
         std::copy(addr1.begin(), addr1.end(), pack->header.source_ip);
 
-        logc(LogLevel::Debug) << "packet from [" << sender.address().to_string() << "]:" << sender.port()
+        logc(LogLevel::Info) << "packet from [" << sender.address().to_string() << "]:" << sender.port()
                               << " to [" << ep.address().to_string() << "]:" << ep.port();
 
         relay_send(local_sockfd, *pack, ep);
@@ -249,7 +249,7 @@ int main(int argc, char *argv[]) {
 //      printf("\n");
 //      fflush(stdout);
 
-      logc(LogLevel::Debug) << "recv pack from [" << ep.value().address().to_string() << "]:" << ep.value().port();
+//      logc(LogLevel::Debug) << "recv pack from [" << ep.value().address().to_string() << "]:" << ep.value().port();
 
       std::thread resolve_packet_thread(handle_packet<OMELET_AL_BUFFER_SIZE>, ep.value(), pack);
       resolve_packet_thread.detach();

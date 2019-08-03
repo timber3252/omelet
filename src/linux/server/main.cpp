@@ -61,7 +61,7 @@ std::optional<ra::Endpoint> relay_recv(int fd, ra::IPv4RelayPacket<ra::Packet<si
 
 template <size_t size>
 void omelet_send(int fd, const ra::Packet<size> &pack, ra::Endpoint ep) {
-  if (is_v4) {
+  if (ep.address().is_v4()) {
     auto *pack_relay = new ra::IPv4RelayPacket<ra::Packet<size>>();
     memcpy(pack_relay->raw_packet.data(), pack.const_data(), sizeof pack);
 
@@ -206,7 +206,7 @@ void handle_packet(const ra::Endpoint &sender,
         // IPv6 or Fallback IPv4
       routers.insert(current_virtual_ip, sender);
 
-      logc(LogLevel::Debug) << current_virtual_ip.to_string() << " A";
+      logc(LogLevel::Info) << current_virtual_ip.to_string() << (current_virtual_ip.is_v6() ? " A" : " B");
 //      } else {
 //        // IPv6
 //        ra::ipv6_address_t sender_ip;
@@ -325,6 +325,8 @@ int main(int argc, char *argv[]) {
   init_socket();
 
   if (relay_addr.has_value()) {
+    logc(LogLevel::Info) << "relay server: [" << relay_addr.value().address().to_string() << "]:" << relay_addr.value().port();
+
     auto *pack = new ra::IPv4RelayPacket<ra::Packet<OMELET_AL_BUFFER_SIZE>>;
     pack->header.protocol_id = PROTOCOL_RELAY;
     pack->header.packet_source = PACKET_RELAY_FROM_SERVER;
@@ -335,13 +337,6 @@ int main(int argc, char *argv[]) {
     pack->header.source_port = local_addr.port();
 
     relay_send(local_sockfd, *pack, relay_addr.value());
-  }
-
-  if (local_addr.address().is_v4()) {
-    if (!relay_addr.has_value()) {
-      logc(LogLevel::Fatal) << "local socket is running on ipv4 but no relay server provided";
-      exit(-1);
-    }
 
     is_v4 = true;
 

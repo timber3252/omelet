@@ -62,7 +62,6 @@ public:
   bool operator<(const Endpoint &other) const;
   bool operator==(const Endpoint &other) const;
 
-private:
   Address _addr6;
   port_t _port;
 };

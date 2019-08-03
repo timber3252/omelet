@@ -65,7 +65,7 @@ std::optional<ra::Endpoint> relay_recv(int fd, ra::IPv4RelayPacket<ra::Packet<si
 
 template <size_t size>
 void omelet_send(int fd, const ra::Packet<size> &pack, ra::Endpoint ep) {
-  if (is_v4) {
+  if (is_v4 || ep.address().is_v4()) {
     auto *pack_relay = new ra::IPv4RelayPacket<ra::Packet<size>>();
     memcpy(pack_relay->raw_packet.data(), pack.const_data(), sizeof pack);
 
@@ -454,32 +454,78 @@ void do_relay_heartbeat() {
   }
 }
 
+uint16_t local_port = 0;
+std::optional<std::string> main_if{};
+
+bool check_ipv6() {
+  struct ifaddrs *if_addr(nullptr);
+  void *tmp_addr_ptr(nullptr);
+
+  getifaddrs(&if_addr);
+
+  bool ret = false;
+
+  while (if_addr != nullptr) {
+    if (if_addr->ifa_addr->sa_family == AF_INET) {
+      tmp_addr_ptr =& ((struct sockaddr_in *)if_addr->ifa_addr)->sin_addr;
+      char address_buffer[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, tmp_addr_ptr, address_buffer, INET_ADDRSTRLEN);
+    } else if (if_addr->ifa_addr->sa_family==AF_INET6) {
+      tmp_addr_ptr=&((struct sockaddr_in6 *)if_addr->ifa_addr)->sin6_addr;
+      char address_buffer[INET6_ADDRSTRLEN];
+      inet_ntop(AF_INET6, tmp_addr_ptr, address_buffer, INET6_ADDRSTRLEN);
+      std::string str(address_buffer), if_name(if_addr->ifa_name);
+      if (if_name.substr(0, 2) != "lo" && str[0] != 'f') { // 未必规范，但是基本符合实际情况
+//        printf("%s IP Address %s\n", if_addr->ifa_name, address_buffer);
+        if (main_if.has_value()) {
+//          logc(LogLevel::Debug) << "detect local ip: [" << local_addr.address().to_string() << "]:" << local_addr.port() << " " << int(ret);
+          if (main_if.value() == if_name) {
+            ret = true;
+            local_addr = ra::Endpoint(str, local_port);
+            return ret;
+          }
+        } else {
+          if (!ret) {
+            local_addr = ra::Endpoint(str, local_port);
+            ret = true;
+//            logc(LogLevel::Debug) << "detect local ip: [" << local_addr.address().to_string() << "]:" << local_addr.port() << " " << int(ret);
+          } else if (if_name.find('e') != std::string::npos) { // 未必规范，但是基本符合实际情况
+            local_addr = ra::Endpoint(str, local_port);
+            ret = true;
+//            logc(LogLevel::Debug) << "detect local ip: [" << local_addr.address().to_string() << "]:" << local_addr.port() << " " << int(ret);
+          }
+        }
+      }
+    }
+
+    if_addr = if_addr->ifa_next;
+  }
+
+  return ret;
+}
+
 int main(int argc, char *argv[]) {
   int ch;
 
-  local_addr = ra::Endpoint("[::]:36868");
   server_addr = ra::Endpoint("[::]:21121");
   api_addr = ra::Endpoint("[::]:21183");
+  local_addr = ra::Endpoint("0.0.0.0:36868");
 
-  is_v4 = false;
+  local_port = 36868;
 
-  while ((ch = getopt(argc, argv, "hl:k:s:b:r:")) != -1) {
+  while ((ch = getopt(argc, argv, "hk:s:b:r:p:i:")) != -1) {
     switch (ch) {
     case 'h': {
       printf("Usage: %s arguments                                        \n"
              "  -h           show help                                   \n"
-             "  -l addr      set local address (default = [::]:36868)    \n"
              "  -k aes_key   use specific aes key (length = 128)         \n"
              "  -s addr      set server address (default = [::]:21121)   \n"
              "  -b addr      api service (default = [::]:21183)          \n"
-             "  -r addr      use relay server (optional)                 \n",
+             "  -r addr      use relay server (optional)                 \n"
+             "  -p port      local port (defualt: 36868)                 \n"
+             "  -i if        local interface (default: null)             \n",
              argv[0]);
       return 0;
-    }
-
-    case 'l': {
-      local_addr = ra::Endpoint(optarg);
-      break;
     }
 
     case 'k': {
@@ -518,10 +564,30 @@ int main(int argc, char *argv[]) {
       break;
     }
 
+    case 'p': {
+      local_port = std::stoi(optarg);
+      break;
+    }
+
+    case 'i': {
+      main_if = optarg;
+      if (main_if.value() == "lo") { // 一定为 lo？
+        logc(LogLevel::Fatal) << "loopback is not allowed";
+        exit(-1);
+      }
+      break;
+    }
+
     default: {
       break;
     }
     }
+  }
+
+  is_v4 = !check_ipv6();
+
+  if (is_v4) {
+    local_addr = ra::Endpoint("0.0.0.0", local_port);
   }
 
   init_socket();
@@ -580,6 +646,7 @@ int main(int argc, char *argv[]) {
     }
 
     do_verification();
+    logc(LogLevel::Info) << "retry in " << retry_time / 1000.0 << " seconds";
   }
 
   std::thread routers_update_thread(do_routers_update);
