@@ -83,11 +83,13 @@ void handle_packet(const ra::Endpoint &sender,
     switch(pack->header.packet_source) {
     case PACKET_RELAY_FROM_SERVER: {
       server_addr = sender;
+      logc(LogLevel::Info) << "server was connected to the server";
       break;
     }
 
     case PACKET_RELAY_FROM_IPV4_CLIENT: {
 //      routers_6to4.insert(sender, sender);
+      logc(LogLevel::Info) << "client [" << sender.address().to_string() << "]:" << sender.port() << " was connected to the server";
       break;
     }
 
@@ -97,6 +99,7 @@ void handle_packet(const ra::Endpoint &sender,
       ra::port_t client_port = pack->header.source_port;
       ra::Endpoint addr(client_ip, client_port);
       routers_6to4.insert(addr, sender);
+      logc(LogLevel::Info) << "client [" << addr.address().to_string() << "]:" << addr.port() << " was connected to the server";
       break;
     }
 
@@ -245,6 +248,8 @@ int main(int argc, char *argv[]) {
 //      }
 //      printf("\n");
 //      fflush(stdout);
+
+      logc(LogLevel::Debug) << "recv pack from [" << ep.value().address().to_string() << "]:" << ep.value().port();
 
       std::thread resolve_packet_thread(handle_packet<OMELET_AL_BUFFER_SIZE>, ep.value(), pack);
       resolve_packet_thread.detach();
