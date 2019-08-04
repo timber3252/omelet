@@ -17,6 +17,12 @@ public:
     mtx.unlock();
   }
 
+  void modify(const Key &key, const Value &value) {
+    mtx.lock();
+    mp[key] = value;
+    mtx.unlock();
+  }
+
   bool exist(const Key &key) {
     mtx.lock();
     bool ret = mp.count(key);
@@ -62,10 +68,14 @@ public:
 
   template <class T>
   void query_all(T &arg,
-                 std::function<void(const Key &, const Value &, T &)> resolve) {
+                 std::function<bool(const Key &, const Value &, T &)> resolve) {
     mtx.lock();
-    for (const auto &i : mp) {
-      resolve(i.first, i.second, arg);
+    for (auto it = mp.begin(); it != mp.end(); ) {
+      if (!resolve(it->first, it->second, arg)) {
+        it = mp.erase(it);
+      } else {
+        ++it;
+      }
     }
     mtx.unlock();
   }

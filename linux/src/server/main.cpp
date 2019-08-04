@@ -4,15 +4,13 @@
 
 #include "src/base/global.hpp"
 
-// TODO: 服务器需要严格支持 IPv6？
-// TODO: 可以使用 IPv4 中转服务器处理
-
 using ra::LogLevel;
 
 ra::ConsoleLog logc;
 ra::Endpoint local_addr;
 std::optional<ra::Endpoint> relay_addr{};
 ra::RMap<ra::Address, ra::Endpoint> routers;
+ra::RMap<ra::Address, std::chrono::system_clock::time_point> alive_status;
 ra::Address allocator;
 
 int local_sockfd;
@@ -164,13 +162,31 @@ void handle_packet(const ra::Endpoint &sender,
   case PACKET_GET_ROUTERS: {
     auto *reply = new ra::Packet<OMELET_AL_BUFFER_SIZE>();
 
+    ra::ipv6_address_t sender_virtual_ip;
+    std::copy(pack->header.virtual_ip_n, pack->header.virtual_ip_n + 16,
+              sender_virtual_ip.begin());
+
+    ra::Address sender_virtual_addr(sender_virtual_ip);
+
+    alive_status.modify(sender_virtual_ip, std::chrono::system_clock::now());
+
     reply->header.set(PACKET_FROM_SERVER, PACKET_GET_ROUTERS,
                       sizeof reply->header);
 
     routers.query_all<ra::Packet<size>>(*reply, [](const ra::Address &first,
                                                    const ra::Endpoint &second,
-                                                   ra::Packet<size> &packet) {
+                                                   ra::Packet<size> &packet) -> bool {
       auto addr_1 = first.raw_bytes(), addr_2 = second.address().raw_bytes();
+      auto ret = alive_status.query(first);
+
+      if (ret.has_value()) {
+        auto diff = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now() - ret.value());
+
+        if (diff.count() > 60) {
+          return false;
+        }
+      }
 
       std::copy(addr_1.begin(), addr_1.end(),
                 packet.data() + packet.header.length);
@@ -185,6 +201,7 @@ void handle_packet(const ra::Endpoint &sender,
 
       //      logc(LogLevel::Debug) << first.to_string() << " -> " <<
       //      second.address().to_string();
+      return true;
     });
 
     omelet_send(local_sockfd, *reply, sender);
@@ -205,6 +222,7 @@ void handle_packet(const ra::Endpoint &sender,
 //      if (pack->header.length == sizeof pack->header) {
         // IPv6 or Fallback IPv4
       routers.insert(current_virtual_ip, sender);
+      alive_status.insert(current_virtual_ip, std::chrono::system_clock::now());
 
       logc(LogLevel::Info) << current_virtual_ip.to_string() << (current_virtual_ip.is_v6() ? " A" : " B");
 //      } else {
@@ -240,6 +258,7 @@ void handle_packet(const ra::Endpoint &sender,
 
     if (routers.exist(sender_virtual_addr)) {
       routers.remove(sender_virtual_addr);
+      alive_status.remove(sender_virtual_addr);
       logc(LogLevel::Info) << "client " << sender_virtual_addr.to_string()
                            << " has leaved";
     }

@@ -4,8 +4,6 @@
 
 #include "src/base/global.hpp"
 
-// TODO: 客户端可以为 IPv4 / IPv6
-
 using ra::LogLevel;
 
 ra::ConsoleLog logc;
@@ -391,11 +389,12 @@ void handle_api_service(int fd) {
 
         routers.query_all<ra::SimplePacket<OMELET_AL_BUFFER_SIZE>>(
             reply, [](const ra::Address &first, const ra::Endpoint &second,
-                      ra::SimplePacket<OMELET_AL_BUFFER_SIZE> &reply) {
+                      ra::SimplePacket<OMELET_AL_BUFFER_SIZE> &reply) -> bool {
               auto raw_addr = first.raw_bytes();
               std::copy(raw_addr.begin(), raw_addr.end(),
                         reply.data() + reply.header.length);
               reply.header.length += raw_addr.size();
+              return true;
             });
 
         send(fd, reply.data(), reply.header.length, 0);
