@@ -47,6 +47,7 @@ namespace ra {
 #define PACKET_RELAY_RAW_TO_PEERS 0x0d
 #define PACKET_RELAY_VERIFICATION 0x0e
 #define PACKET_RELAY_HEARTBEAT 0x0f
+#define PACKET_LOCAL_CLOSE 0x10
 
 struct OmeletHeader {
   uint8_t protocol_id;
