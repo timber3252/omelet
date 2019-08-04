@@ -1,24 +1,39 @@
 # omelet
 
-A cross-platform dynamic virtual network. Currently it is in the initial development stage.
-
-[TOC]
+A cross-platform dynamic virtual network. Basic functions have been implemented and tested. Originally designed for use in [swwind/proline](https://github.com/swwind/proline).
 
 ## Features
 
-- the virtual network could be able to work in the Internet based on stable external server
-- provide encrypted packet transmission tunnel between nodes based on tun device
+- IPv4 & IPv6 hybrid dynamic private network could be built based on stable server and relay
+- Provide secure tunnel connection based on AES algorithm
 
 ## Dependencies
 
-- openssl
+### Linux
+
+- cmake (>= 3.10)
+- gcc (>= 7, C++17 support)
+- openssl (>= 1.0.0)
+
+### Windows
 
 ## Requirements
 
 - Server: support IPv6 dual-protocol stack
 - Relay: static external IPv4 IP
-- Client: IPv4 or IPv6, support tun device
+- Client: IPv4 or IPv6, support tun device module
 
-## See Also
+## Getting Started
 
-[swwind/proline](https://github.com/swwind/proline)
+### Linux
+
+```bash
+git clone https://github.com/timber3252/omelet
+cd omelet
+
+cmake -S . -B build
+cd build
+make
+```
+
+### Windows
