@@ -183,14 +183,14 @@ void handle_server_packet(const ra::Endpoint &sender,
   case PACKET_GET_ROUTERS: {
     int len = pack->header.length - sizeof pack->header;
 
-    static int cnt = 0;
+//    static int cnt = 0;
 
     if (len % 34 == 0) {
       ra::RMap<ra::Address, ra::Endpoint> routers_new;
 
-      if (cnt == 0) {
-        logc(LogLevel::Info) << "peers update: ";
-      }
+//      if (cnt == 0) {
+//        logc(LogLevel::Info) << "peers update: ";
+//      }
 
       for (int i = 0; i < len; i += 34) {
         ra::ipv6_address_t virt_ip, phy_ip;
@@ -205,16 +205,16 @@ void handle_server_packet(const ra::Endpoint &sender,
 
         routers_new.insert(virt_addr, phy_ep);
 
-        if (cnt == 0) {
-          logc(LogLevel::Info) << "  [" << i / 34 + 1 << "] " << virt_addr.to_string()
-                               << " -> " << "[" << phy_ep.address().to_string() << "]:"
-                               << phy_ep.port();
-        }
+//        if (cnt == 0) {
+//          logc(LogLevel::Info) << "  [" << i / 34 + 1 << "] " << virt_addr.to_string()
+//                               << " -> " << "[" << phy_ep.address().to_string() << "]:"
+//                               << phy_ep.port();
+//        }
       }
 
       routers.swap(routers_new);
 
-      cnt = (cnt + 1) % 6;
+//      cnt = (cnt + 1) % 6;
     }
     break;
   }
