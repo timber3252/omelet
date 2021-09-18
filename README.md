@@ -1,5 +1,7 @@
 # omelet
 
+**This repo is the backup for the original omelet project, which is just for learning purpose.**
+
 A cross-platform dynamic virtual network. Basic functions have been implemented and tested. Originally designed for use in [swwind/proline](https://github.com/swwind/proline).
 
 ## Features
@@ -14,8 +16,6 @@ A cross-platform dynamic virtual network. Basic functions have been implemented 
 - cmake (>= 3.10)
 - gcc (>= 7, C++17 support)
 - openssl (>= 1.0.0)
-
-### Windows
 
 ## Requirements
 
@@ -35,5 +35,3 @@ cmake -S . -B build
 cd build
 make
 ```
-
-### Windows
